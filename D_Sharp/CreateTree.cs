@@ -39,12 +39,12 @@ namespace D_Sharp
             return Expression.Lambda<Action>(body).Compile();
         }
 
-        //変数宣言の解析
+        //グローバル変数宣言の解析
         static Expression CreateVariableDeclaration(TokenStream tokenst)
         {
             var checkPoint=tokenst.NowIndex;
             string variableName;
-            if (tokenst.Get().TokenType == TokenType.Identifier)
+            if (tokenst.Get().TokenType == TokenType.GlobalVariable)
             {
                 variableName = tokenst.Get().Str;
                 tokenst.Next();
@@ -148,9 +148,9 @@ namespace D_Sharp
             {
                 return expr;
             }
-            //変数
+            //グローバル変数
             else if (
-                tokenst.Get().TokenType==TokenType.Identifier &&
+                tokenst.Get().TokenType==TokenType.GlobalVariable &&
                 (expr=VariableTable.Find(tokenst.Get().Str))!=null
                 )
             {
@@ -257,10 +257,9 @@ namespace D_Sharp
             }
             else
             {
-
-                //ラムダが変数に格納されてた場合
+                //ラムダがグローバル変数に格納されてた場合
                 Expression expr;
-                if (tokenst.Get().TokenType == TokenType.Identifier &&
+                if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
                    (expr = VariableTable.Find(tokenst.Get().Str)) != null)
                 {
                     tokenst.Next();
