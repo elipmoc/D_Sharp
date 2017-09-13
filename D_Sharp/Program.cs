@@ -58,6 +58,19 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+            while (true)
+            {
+                var tokenStream = LexicalAnalyzer.Lexicalanalysis(Console.ReadLine());
+                if (tokenStream == null)
+                {
+                    Console.WriteLine("syntax error!!");
+                    continue;
+                }
+
+                //デバッグ用
+                for (int i = 0; i < tokenStream.Size; i++)
+                    tokenStream[i].DebugPrint();
+            }
         }
     }
 }

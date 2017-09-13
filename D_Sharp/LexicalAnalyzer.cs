@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace D_Sharp
 {
@@ -11,7 +12,25 @@ namespace D_Sharp
         //字句解析実行
         static public TokenStream Lexicalanalysis(string str)
         {
+            int index = 0;
             var tokenlist = new List<Token>();
+            var num = new Regex(@"^\d+(\.\d+)?");
+            var symbol = new Regex(@"^[\+\-\*\/{}\(\)=]");
+            var Identifier = new Regex(@"^[a-z]+");
+            Match match;
+            while (str.Length!=0)
+            {
+                if ((match = num.Match(str)).Success)
+                    tokenlist.Add(new Token(match.Value,TokenType.Double));
+                else if ((match = symbol.Match(str)).Success)
+                    tokenlist.Add(new Token(match.Value, TokenType.symbol));
+                else if ((match = Identifier.Match(str)).Success)
+                    tokenlist.Add(new Token(match.Value, TokenType.Identifier));
+                else
+                    return null;
+                str=str.Substring(match.Length);
+            }
+
             return new TokenStream(tokenlist);
         }
     }
