@@ -34,13 +34,15 @@ namespace D_Sharp
             if (body == null)
                 if((body=CreateVariableDeclaration(tokenst))==null)
                     return null;
+            if (tokenst.NowIndex < tokenst.Size)
+                return null;
             return Expression.Lambda<Action>(body).Compile();
         }
 
         //変数宣言の解析
         static Expression CreateVariableDeclaration(TokenStream tokenst)
         {
-            tokenst.SetCheckPoint();
+            var checkPoint=tokenst.NowIndex;
             string variableName;
             if (tokenst.Get().TokenType == TokenType.Identifier)
             {
@@ -66,14 +68,14 @@ namespace D_Sharp
 
                 }
             }
-            tokenst.Rollback();
+            tokenst.Rollback(checkPoint);
             return null;
         }
 
         //式
         static Expression CreateSiki(TokenStream tokenst)
         {
-            tokenst.SetCheckPoint();
+            var checkPoint=tokenst.NowIndex;
             Expression left;
             if ((left = CreateKou(tokenst)) != null)
             {
@@ -85,7 +87,7 @@ namespace D_Sharp
                     tokenst.Next();
                     if ((right = CreateKou(tokenst)) == null)
                     {
-                        tokenst.Rollback();
+                        tokenst.Rollback(checkPoint);
                         return null;
                     }
                     left =
@@ -93,14 +95,14 @@ namespace D_Sharp
                 }
                 return left;
             }
-            tokenst.Rollback();
+            tokenst.Rollback(checkPoint);
             return null;
         }
 
         //項
         static Expression CreateKou(TokenStream tokenst)
         {
-            tokenst.SetCheckPoint();
+            var checkPoint=tokenst.NowIndex;
             Expression left;
             if ((left = CreateInsi(tokenst)) != null)
             {
@@ -112,7 +114,7 @@ namespace D_Sharp
                     tokenst.Next();
                     if ((right = CreateInsi(tokenst)) == null)
                     {
-                        tokenst.Rollback();
+                        tokenst.Rollback(checkPoint);
                         return null;
                     }
                     left =
@@ -120,14 +122,14 @@ namespace D_Sharp
                 }
                 return left;
             }
-            tokenst.Rollback();
+            tokenst.Rollback(checkPoint);
             return null;
         }
 
         //因子
         static Expression CreateInsi(TokenStream tokenst)
         {
-            tokenst.SetCheckPoint();
+            var checkPoint = tokenst.NowIndex;
             Expression expr;
             //実数
             if (tokenst.Get().TokenType == TokenType.Double)
@@ -135,6 +137,16 @@ namespace D_Sharp
                 var constant_double = Expression.Constant(tokenst.Get().GetDouble());
                 tokenst.Next();
                 return constant_double;
+            }
+            //ラムダ呼び出し
+            else if ((expr = CreateLambdaCall(tokenst)) != null)
+            {
+                return expr;
+            }
+            //組み込み関数呼び出し
+            else if ((expr = CreateFunctionCall(tokenst)) != null)
+            {
+                return expr;
             }
             //変数
             else if (
@@ -145,8 +157,8 @@ namespace D_Sharp
                 tokenst.Next();
                 return expr;
             }
-            //組み込み関数呼び出し
-            else if ((expr=CreateFunctionCall(tokenst))!=null)
+            //ラムダ定義
+            else if ((expr=CreateLambdaDefinition(tokenst))!=null)
             {
                 return expr;
             }
@@ -163,19 +175,19 @@ namespace D_Sharp
                     }
                 }
             }
-            tokenst.Rollback();
+            tokenst.Rollback(checkPoint);
             return null;
         }
 
         //組み込み関数呼び出し
         static Expression CreateFunctionCall(TokenStream tokenst)
         {
-            tokenst.SetCheckPoint();
+            var checkPoint=tokenst.NowIndex;
             if (tokenst.Get().TokenType == TokenType.Identifier)
             {
                 string funcName = tokenst.Get().Str;
                 tokenst.Next();
-                if (tokenst.Get().Str == "(")
+                if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str == "(")
                 {
                     tokenst.Next();
                     List<Expression> args;
@@ -183,16 +195,18 @@ namespace D_Sharp
                     {
                         if (tokenst.Get().Str == ")")
                         {
-                            var methodInfo=typeof(builti_in_functions).GetMethod(funcName);
+                            
+                            var methodInfo=typeof(builti_in_functions).GetMethod(funcName, args.Select(x => x.Type).ToArray());
                             if (methodInfo != null)
                             {
+                                tokenst.Next();
                                return Expression.Call(methodInfo, args);
                             }
                         }
                     }
                 }
             }
-            tokenst.Rollback();
+            tokenst.Rollback(checkPoint);
             return null;
         }
 
@@ -200,7 +214,7 @@ namespace D_Sharp
         static List<Expression> CreateArgs(TokenStream tokenst)
         {
            
-            tokenst.SetCheckPoint();
+            var checkPoint=tokenst.NowIndex;
             Expression expr;
             if ((expr = CreateSiki(tokenst)) != null)
             {
@@ -212,7 +226,7 @@ namespace D_Sharp
                     expr = CreateSiki(tokenst);
                     if (expr == null)
                     {
-                        tokenst.Rollback();
+                        tokenst.Rollback(checkPoint);
                         return null;
                     }
                     args.Add(expr);
@@ -221,6 +235,74 @@ namespace D_Sharp
             }
             else
                 return new List<Expression>();
+        }
+
+        //ラムダ呼び出し
+        static Expression CreateLambdaCall(TokenStream tokenst)
+        {
+            var checkPoint=tokenst.NowIndex;
+            //直接書かれたラムダ
+            var lambdadef = CreateLambdaDefinition(tokenst);
+            if (lambdadef != null)
+            {
+                if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "(")
+                {
+                    tokenst.Next();
+                    if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ")")
+                    {
+                        tokenst.Next();
+                        return Expression.Invoke(lambdadef);
+                    }
+                }
+            }
+            else
+            {
+
+                //ラムダが変数に格納されてた場合
+                Expression expr;
+                if (tokenst.Get().TokenType == TokenType.Identifier &&
+                   (expr = VariableTable.Find(tokenst.Get().Str)) != null)
+                {
+                    tokenst.Next();
+                    if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "(")
+                    {
+                        tokenst.Next();
+                        if (tokenst.Get().Str == ")")
+                        {
+                            tokenst.Next();
+                            return Expression.Invoke(expr);
+                        }
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //ラムダ定義
+        static Expression CreateLambdaDefinition(TokenStream tokenst)
+        {
+            var checkPoint=tokenst.NowIndex;
+            if (tokenst.Get().Str=="(")
+            {
+                tokenst.Next();
+                if (tokenst.Get().Str==")")
+                {
+                    tokenst.Next();
+                    if (tokenst.Get().Str == "{")
+                    {
+                        tokenst.Next();
+                        var body = CreateSiki(tokenst);
+                        if (body!=null&&tokenst.Get().Str=="}")
+                        {
+                            tokenst.Next();
+                            return Expression.Lambda(body);
+                        }
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
         }
 
     }

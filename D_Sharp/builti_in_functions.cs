@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace D_Sharp
 {
@@ -12,6 +13,11 @@ namespace D_Sharp
        static public double print(double d) {
             Console.WriteLine(d);
             return d;
+        }
+        static public Delegate print(Delegate lambda)
+        {
+            Console.WriteLine(lambda);
+            return lambda;
         }
     }
 }

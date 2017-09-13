@@ -71,9 +71,9 @@ namespace D_Sharp
                     continue;
                 }
                 
-                //デバッグ用
+                /*//デバッグ用
                 for (int i = 0; i < tokenStream.Size; i++)
-                    tokenStream[i].DebugPrint();
+                    tokenStream[i].DebugPrint();*/
 
 
                 var func=CreateTree.CreateStatement(tokenStream);

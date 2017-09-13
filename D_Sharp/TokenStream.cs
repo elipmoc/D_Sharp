@@ -10,7 +10,6 @@ namespace D_Sharp
     {
         private readonly List<Token> tokenlist = new List<Token>();
         public int NowIndex { get; private set; }
-        private int checkPoint = 0;
 
         //次のトークンへインデックスを進める
         public void Next() { NowIndex++; }
@@ -18,16 +17,10 @@ namespace D_Sharp
         //前のトークンへインデックスを戻す
         public void Prev() { NowIndex--; }
 
-        //チェックポイントを設置
-        public void SetCheckPoint()
+        //任意インデックスにロールバック
+        public void Rollback(int index)
         {
-            checkPoint = NowIndex;
-        }
-
-        //チェックポイントを設置したインデックスにロールバック
-        public void Rollback()
-        {
-            NowIndex = checkPoint;
+            NowIndex = index;
         }
 
         //nowindexがさすトークンを得る
