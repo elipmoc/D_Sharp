@@ -31,7 +31,7 @@ namespace D_Sharp
             ;
 
         因子
-            : 実数 || 関数 || 変数 || ラムダ呼び出し ||( "(" , 式 , ")" )
+            : 実数 || 組み込み関数呼び出し || 変数 || ラムダ呼び出し ||( "(" , 式 , ")" )
             ;
 
         ラムダ呼び出し
@@ -42,7 +42,7 @@ namespace D_Sharp
             :"(",")","{",式,"}"
             ;
 
-        関数
+        組み込み関数呼び出し
             :識別子,"(",引数,")"
             ;
        
@@ -81,7 +81,7 @@ namespace D_Sharp
                     Console.WriteLine("Tree error!!");
                     continue;
                 }
-                Console.WriteLine( func());
+                func();
             }
         }
     }

@@ -14,7 +14,7 @@ namespace D_Sharp
         {
             var tokenlist = new List<Token>();
             var num = new Regex(@"^\d+(\.\d+)?");
-            var symbol = new Regex(@"^[\+\-\*\/{}\(\)=]");
+            var symbol = new Regex(@"^[\+\-\*\/{}\(\)=,]");
             var Identifier = new Regex(@"^[a-z]+");
             Match match;
             while (str.Length!=0)
