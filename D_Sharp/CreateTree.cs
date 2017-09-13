@@ -32,8 +32,42 @@ namespace D_Sharp
         {
             var body = CreateSiki(tokenst);
             if (body == null)
-                return null;
+                if((body=CreateVariableDeclaration(tokenst))==null)
+                    return null;
             return Expression.Lambda<Action>(body).Compile();
+        }
+
+        //変数宣言の解析
+        static Expression CreateVariableDeclaration(TokenStream tokenst)
+        {
+            tokenst.SetCheckPoint();
+            string variableName;
+            if (tokenst.Get().TokenType == TokenType.Identifier)
+            {
+                variableName = tokenst.Get().Str;
+                tokenst.Next();
+                if (tokenst.Get().Str == "=")
+                {
+                    tokenst.Next();
+                    var expr = CreateSiki(tokenst);
+                    if (expr != null)
+                    {
+                        if (VariableTable.Find(variableName) == null)
+                        {
+                            var genericFunc = typeof(VariableTable).GetMethod("Register");
+                            return Expression.Call(
+                                genericFunc.MakeGenericMethod(new[] {expr.Type}),
+                                Expression.Constant(variableName),
+                                expr
+                            );
+
+                        }
+                    }
+
+                }
+            }
+            tokenst.Rollback();
+            return null;
         }
 
         //式
@@ -101,6 +135,15 @@ namespace D_Sharp
                 var constant_double = Expression.Constant(tokenst.Get().GetDouble());
                 tokenst.Next();
                 return constant_double;
+            }
+            //変数
+            else if (
+                tokenst.Get().TokenType==TokenType.Identifier &&
+                (expr=VariableTable.Find(tokenst.Get().Str))!=null
+                )
+            {
+                tokenst.Next();
+                return expr;
             }
             //組み込み関数呼び出し
             else if ((expr=CreateFunctionCall(tokenst))!=null)

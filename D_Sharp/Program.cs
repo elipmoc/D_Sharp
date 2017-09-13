@@ -31,7 +31,7 @@ namespace D_Sharp
             ;
 
         因子
-            : 実数 || 組み込み関数呼び出し || 変数 || ラムダ呼び出し ||( "(" , 式 , ")" )
+            : 実数 || 組み込み関数呼び出し || 変数 || ラムダ呼び出し|| ラムダ定義 ||( "(" , 式 , ")" )
             ;
 
         ラムダ呼び出し
@@ -75,12 +75,14 @@ namespace D_Sharp
                 for (int i = 0; i < tokenStream.Size; i++)
                     tokenStream[i].DebugPrint();
 
+
                 var func=CreateTree.CreateStatement(tokenStream);
                 if (func == null)
                 {
                     Console.WriteLine("Tree error!!");
                     continue;
                 }
+
                 func();
             }
         }
