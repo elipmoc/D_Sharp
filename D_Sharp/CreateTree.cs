@@ -157,6 +157,10 @@ namespace D_Sharp
                 tokenst.Next();
                 return expr;
             }
+            //ローカル変数
+            else if ((expr=CreateLocalVariableExpr(tokenst))!=null) {
+                return expr;
+            }
             //ラムダ定義
             else if ((expr=CreateLambdaDefinition(tokenst))!=null)
             {
@@ -210,7 +214,7 @@ namespace D_Sharp
             return null;
         }
 
-        //関数の引数
+        //引数
         static List<Expression> CreateArgs(TokenStream tokenst)
         {
            
@@ -240,37 +244,32 @@ namespace D_Sharp
         //ラムダ呼び出し
         static Expression CreateLambdaCall(TokenStream tokenst)
         {
-            var checkPoint=tokenst.NowIndex;
+            var checkPoint = tokenst.NowIndex;
             //直接書かれたラムダ
             var lambdadef = CreateLambdaDefinition(tokenst);
-            if (lambdadef != null)
-            {
-                if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "(")
+            if (lambdadef == null)
+                //変数のラムダ
+                if (tokenst.Get().TokenType != TokenType.GlobalVariable ||
+                  (lambdadef = VariableTable.Find(tokenst.Get().Str)) == null)
+                {
+                    tokenst.Rollback(checkPoint);
+                    return null;
+                }
+                else
                 {
                     tokenst.Next();
+                }
+            //引数確認
+            if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "(")
+            {
+                tokenst.Next();
+                List<Expression> args;
+                if ((args=CreateArgs(tokenst))!= null)
+                {
                     if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ")")
                     {
                         tokenst.Next();
-                        return Expression.Invoke(lambdadef);
-                    }
-                }
-            }
-            else
-            {
-                //ラムダがグローバル変数に格納されてた場合
-                Expression expr;
-                if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
-                   (expr = VariableTable.Find(tokenst.Get().Str)) != null)
-                {
-                    tokenst.Next();
-                    if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "(")
-                    {
-                        tokenst.Next();
-                        if (tokenst.Get().Str == ")")
-                        {
-                            tokenst.Next();
-                            return Expression.Invoke(expr);
-                        }
+                        return Expression.Invoke(lambdadef,args);
                     }
                 }
             }
@@ -282,22 +281,78 @@ namespace D_Sharp
         static Expression CreateLambdaDefinition(TokenStream tokenst)
         {
             var checkPoint=tokenst.NowIndex;
+            LocalVariableTable.In();
             if (tokenst.Get().Str=="(")
             {
                 tokenst.Next();
-                if (tokenst.Get().Str==")")
+                List<ParameterExpression> argsDecl;
+                if ((argsDecl = CreateArgsDeclaration(tokenst)) != null)
                 {
-                    tokenst.Next();
-                    if (tokenst.Get().Str == "{")
+                    if (tokenst.Get().Str == ")")
                     {
                         tokenst.Next();
-                        var body = CreateSiki(tokenst);
-                        if (body!=null&&tokenst.Get().Str=="}")
+                        if (tokenst.Get().Str == "{")
                         {
                             tokenst.Next();
-                            return Expression.Lambda(body);
+                            var body = CreateSiki(tokenst);
+                            if (body != null && tokenst.Get().Str == "}")
+                            {
+                                tokenst.Next();
+                                LocalVariableTable.Out();
+                                return Expression.Lambda(body,argsDecl);
+                            }
                         }
                     }
+                }
+            }
+            LocalVariableTable.Out();
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //引数宣言
+        static List<ParameterExpression> CreateArgsDeclaration(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().TokenType==TokenType.Identifier)
+            {
+                List<ParameterExpression> args = new List<ParameterExpression>();
+                var parameter= Expression.Parameter(typeof(double), tokenst.Get().Str);
+                LocalVariableTable.Register(tokenst.Get().Str, parameter);
+                args.Add(parameter);
+                tokenst.Next();
+                while (tokenst.Get().Str == ",")
+                {
+                    tokenst.Next();
+                    if (tokenst.Get().TokenType == TokenType.Identifier)
+                    {
+                        parameter = Expression.Parameter(typeof(double), tokenst.Get().Str);
+                        LocalVariableTable.Register(tokenst.Get().Str, parameter);
+                        args.Add(parameter);
+                        tokenst.Next();
+                    }
+                    else
+                    {
+                        tokenst.Rollback(checkPoint);
+                    }
+                }
+                return args;
+            }
+            else
+                return new List<ParameterExpression>();
+        }
+
+        //ローカル変数の取得
+        static Expression CreateLocalVariableExpr(TokenStream tokenst)
+        {
+            var checkPoint= tokenst.NowIndex;
+            if (tokenst.Get().TokenType == TokenType.Identifier)
+            {
+                var expr=LocalVariableTable.Find(tokenst.Get().Str);
+                if (expr != null)
+                {
+                    tokenst.Next();
+                    return expr;
                 }
             }
             tokenst.Rollback(checkPoint);

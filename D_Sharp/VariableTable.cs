@@ -21,4 +21,34 @@ namespace D_Sharp
             table[name] = Expression.Constant(value);
         }
     }
+
+    static class LocalVariableTable
+    {
+        static int nest = -1;
+        static List<Dictionary<string, ParameterExpression>> table = new List<Dictionary<string, ParameterExpression>>();
+        static public void In()
+        {
+            nest++;
+            table.Add(new Dictionary<string, ParameterExpression>());
+        }
+
+        static public void Out()
+        {
+            table.RemoveAt(nest);
+            nest--;
+
+        }
+
+        static public ParameterExpression Find(string name)
+        {
+            if (nest < 0) return null;
+            if (table[nest].ContainsKey(name) == false) return null;
+            return table[nest][name];
+        }
+
+        static public void Register(string name, ParameterExpression parameter)
+        {
+            table[nest][name] = parameter;
+        }
+    }
 }
