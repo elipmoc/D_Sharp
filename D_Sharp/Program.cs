@@ -27,7 +27,11 @@ namespace D_Sharp
             ;
 
         項
-            :[-], 実数 || 関数 || 変数 || ラムダ呼び出し ||( "(" , 式 , ")" ) , { "*" || "/", 項 }
+            :[-] ,　因子 { "*" || "/", 項 }
+            ;
+
+        因子
+            : 実数 || 関数 || 変数 || ラムダ呼び出し ||( "(" , 式 , ")" )
             ;
 
         ラムダ呼び出し
@@ -63,13 +67,21 @@ namespace D_Sharp
                 var tokenStream = LexicalAnalyzer.Lexicalanalysis(Console.ReadLine());
                 if (tokenStream == null)
                 {
-                    Console.WriteLine("syntax error!!");
+                    Console.WriteLine("token error!!");
                     continue;
                 }
-
+                
                 //デバッグ用
                 for (int i = 0; i < tokenStream.Size; i++)
                     tokenStream[i].DebugPrint();
+
+                var func=CreateTree.CreateStatement(tokenStream);
+                if (func == null)
+                {
+                    Console.WriteLine("Tree error!!");
+                    continue;
+                }
+                Console.WriteLine( func());
             }
         }
     }

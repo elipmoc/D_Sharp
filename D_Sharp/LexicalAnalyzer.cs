@@ -12,7 +12,6 @@ namespace D_Sharp
         //字句解析実行
         static public TokenStream Lexicalanalysis(string str)
         {
-            int index = 0;
             var tokenlist = new List<Token>();
             var num = new Regex(@"^\d+(\.\d+)?");
             var symbol = new Regex(@"^[\+\-\*\/{}\(\)=]");
