@@ -20,7 +20,7 @@ namespace D_Sharp
             ;
 
         変数宣言
-            : 識別子,"=",式
+            : [型指定子],識別子,"=",式
             ;
         式
             : 項 , { "+" || "-" , 項 }
@@ -61,6 +61,10 @@ namespace D_Sharp
         引数定義
             :[識別子 , {"," , 識別子}]
             ;
+
+        型指定子
+            : "double",{"->","double"},"::"
+            ;
                
         */
 
@@ -68,6 +72,7 @@ namespace D_Sharp
         {
             while (true)
             {
+                
                 var tokenStream = LexicalAnalyzer.Lexicalanalysis(Console.ReadLine());
                 if (tokenStream == null)
                 {
@@ -75,9 +80,9 @@ namespace D_Sharp
                     continue;
                 }
                 
-                /*//デバッグ用
+                //デバッグ用
                 for (int i = 0; i < tokenStream.Size; i++)
-                    tokenStream[i].DebugPrint();*/
+                    tokenStream[i].DebugPrint();
 
 
                 var func=CreateTree.CreateStatement(tokenStream);

@@ -43,6 +43,11 @@ namespace D_Sharp
         static Expression CreateVariableDeclaration(TokenStream tokenst)
         {
             var checkPoint=tokenst.NowIndex;
+            if (CreateTypeSpecifier(tokenst) == null)
+            {
+                tokenst.Rollback(checkPoint);
+                return null;
+            }
             string variableName;
             if (tokenst.Get().TokenType == TokenType.GlobalVariable)
             {
@@ -247,18 +252,23 @@ namespace D_Sharp
             var checkPoint = tokenst.NowIndex;
             //直接書かれたラムダ
             var lambdadef = CreateLambdaDefinition(tokenst);
-            if (lambdadef == null)
-                //変数のラムダ
-                if (tokenst.Get().TokenType != TokenType.GlobalVariable ||
-                  (lambdadef = VariableTable.Find(tokenst.Get().Str)) == null)
-                {
-                    tokenst.Rollback(checkPoint);
-                    return null;
-                }
-                else
-                {
-                    tokenst.Next();
-                }
+            if (lambdadef != null) ;
+            //グローバル変数のラムダ
+            else if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
+                  (lambdadef = VariableTable.Find(tokenst.Get().Str)) != null)
+            {
+                tokenst.Next();
+            }
+            //ローカル変数のラムダ
+            else if ((lambdadef = CreateLocalVariableExpr(tokenst)) != null)
+            {
+            }
+            else
+            {
+                tokenst.Rollback(checkPoint);
+                return null;
+            }
+            
             //引数確認
             if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "(")
             {
@@ -353,6 +363,47 @@ namespace D_Sharp
                 {
                     tokenst.Next();
                     return expr;
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //型指定子
+        static Type CreateTypeSpecifier(TokenStream tokenst)
+        {
+            var checkPoint=tokenst.NowIndex;
+            if (tokenst.Get().Str == "double")
+            {
+                tokenst.Next();
+                if (tokenst.Get().Str == "::")
+                {
+                    tokenst.Next();
+                    return typeof(double);
+                }
+                if (tokenst.Get().Str == "->")
+                {
+                    List<Type> types = new List<Type>();
+                    types.Add(typeof(double));
+                    while (tokenst.Get().Str == "->")
+                    {
+                        tokenst.Next();
+                        if (tokenst.Get().Str == "double")
+                        {
+                            types.Add(typeof(double));
+                            tokenst.Next();
+                        }
+                        else
+                        {
+                            tokenst.Rollback(checkPoint);
+                            return null;
+                        }
+                    }
+                    if (tokenst.Get().Str == "::")
+                    {
+                        tokenst.Next();
+                        return Expression.GetDelegateType(types.ToArray());
+                    }
                 }
             }
             tokenst.Rollback(checkPoint);
