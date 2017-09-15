@@ -89,27 +89,35 @@ namespace D_Sharp
         {
             while (true)
             {
-                
-                var tokenStream = LexicalAnalyzer.Lexicalanalysis(Console.ReadLine());
-                if (tokenStream == null)
+
+                try
                 {
-                    Console.WriteLine("token error!!");
+                    var tokenStream = LexicalAnalyzer.Lexicalanalysis(Console.ReadLine());
+                    if (tokenStream == null)
+                    {
+                        Console.WriteLine("token error!!");
+                        continue;
+                    }
+
+                    //デバッグ用
+                    /*for (int i = 0; i < tokenStream.Size; i++)
+                        tokenStream[i].DebugPrint();*/
+
+
+                    var func = CreateTree.CreateStatement(tokenStream);
+                    if (func == null)
+                    {
+                        Console.WriteLine("Tree error!!");
+                        continue;
+                    }
+                    func();
+                }
+                catch (Exception except) {
+                    Console.WriteLine(except.Message);
                     continue;
                 }
-                
-                //デバッグ用
-                /*for (int i = 0; i < tokenStream.Size; i++)
-                    tokenStream[i].DebugPrint();*/
 
-
-                var func=CreateTree.CreateStatement(tokenStream);
-                if (func == null)
-                {
-                    Console.WriteLine("Tree error!!");
-                    continue;
-                }
-
-                func();
+               
             }
         }
     }

@@ -175,7 +175,13 @@ namespace D_Sharp
         static Expression CreateKou(TokenStream tokenst)
         {
             var checkPoint=tokenst.NowIndex;
+            bool signedFlag = false;
             Expression left;
+            if (tokenst.Get().Str == "-")
+            {
+                tokenst.Next();
+                signedFlag = true;
+            }
             if ((left = CreateInsi(tokenst)) != null)
             {
                 Expression right;
@@ -192,6 +198,8 @@ namespace D_Sharp
                     left =
                          CreateBinaryOperator(left, right, op);
                 }
+                if(signedFlag)
+                    return Expression.Multiply(Expression.Convert(Expression.Constant(-1),left.Type),left);
                 return left;
             }
             tokenst.Rollback(checkPoint);
