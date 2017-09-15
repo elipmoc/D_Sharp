@@ -23,11 +23,7 @@ namespace D_Sharp
             : [型指定子],識別子,"=",式
             ;
         式
-            : 項 , { "+" || "-" , 項 }
-            ;
-
-        すごいやばい項
-            :等しい演算子|項
+            : 等しい演算子 , { "+" || "-" , 等しい演算子 }
             ;
 
         等しい演算子
@@ -93,8 +89,8 @@ namespace D_Sharp
                 }
                 
                 //デバッグ用
-                for (int i = 0; i < tokenStream.Size; i++)
-                    tokenStream[i].DebugPrint();
+               /* for (int i = 0; i < tokenStream.Size; i++)
+                    tokenStream[i].DebugPrint();*/
 
 
                 var func=CreateTree.CreateStatement(tokenStream);

@@ -23,6 +23,8 @@ namespace D_Sharp
                     return Expression.Multiply(left, right);
                 case "/":
                     return Expression.Divide(left, right);
+                case "==":
+                    return Expression.Equal(left, right);
             }
             return null;
         }
@@ -80,11 +82,38 @@ namespace D_Sharp
         {
             var checkPoint=tokenst.NowIndex;
             Expression left;
-            if ((left = CreateKou(tokenst)) != null)
+            if ((left = CreateHitosi(tokenst)) != null)
             {
                 Expression right;
                 string op;
                 while (tokenst.NowIndex < tokenst.Size && (tokenst.Get().Str == "+" || tokenst.Get().Str == "-"))
+                {
+                    op = tokenst.Get().Str;
+                    tokenst.Next();
+                    if ((right = CreateHitosi(tokenst)) == null)
+                    {
+                        tokenst.Rollback(checkPoint);
+                        return null;
+                    }
+                    left =
+                         CreateBinaryOperator(left, right, op);
+                }
+                return left;
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //等しい演算子
+        static Expression CreateHitosi(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            Expression left;
+            if ((left = CreateKou(tokenst)) != null)
+            {
+                Expression right;
+                string op;
+                while (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "==")
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
