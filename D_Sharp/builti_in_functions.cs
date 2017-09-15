@@ -14,6 +14,11 @@ namespace D_Sharp
             Console.WriteLine(d);
             return d;
         }
+        static public bool print(bool d)
+        {
+            Console.WriteLine(d);
+            return d;
+        }
         static public Delegate print(Delegate lambda)
         {
             Console.WriteLine(lambda);

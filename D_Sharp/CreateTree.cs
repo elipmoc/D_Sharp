@@ -42,8 +42,9 @@ namespace D_Sharp
         //グローバル変数宣言の解析
         static Expression CreateVariableDeclaration(TokenStream tokenst)
         {
-            var checkPoint=tokenst.NowIndex;
-            if (CreateTypeSpecifier(tokenst) == null)
+            var checkPoint = tokenst.NowIndex;
+            Type type;
+            if ((type = CreateTypeSpecifier(tokenst)) == null)
             {
                 tokenst.Rollback(checkPoint);
                 return null;
@@ -52,25 +53,22 @@ namespace D_Sharp
             if (tokenst.Get().TokenType == TokenType.GlobalVariable)
             {
                 variableName = tokenst.Get().Str;
-                tokenst.Next();
-                if (tokenst.Get().Str == "=")
+                if (VariableTable.Find(variableName) == false)
                 {
+                    VariableTable.Register(variableName, type);
                     tokenst.Next();
-                    var expr = CreateSiki(tokenst);
-                    if (expr != null)
+                    if (tokenst.Get().Str == "=")
                     {
-                        if (VariableTable.Find(variableName) == null)
+                        tokenst.Next();
+                        var expr = CreateSiki(tokenst);
+                        if (expr != null)
                         {
-                            var genericFunc = typeof(VariableTable).GetMethod("Register");
-                            return Expression.Call(
-                                genericFunc.MakeGenericMethod(new[] {expr.Type}),
-                                Expression.Constant(variableName),
-                                expr
-                            );
-
+                            var methodInfo = typeof(VariableTable).GetMethod("SetValue").MakeGenericMethod(expr.Type);
+                            return Expression.Call(methodInfo,Expression.Constant(variableName),expr);
                         }
-                    }
 
+                    }
+                    VariableTable.Remove(variableName);
                 }
             }
             tokenst.Rollback(checkPoint);
@@ -156,9 +154,12 @@ namespace D_Sharp
             //グローバル変数
             else if (
                 tokenst.Get().TokenType==TokenType.GlobalVariable &&
-                (expr=VariableTable.Find(tokenst.Get().Str))!=null
-                )
+                VariableTable.Find(tokenst.Get().Str)!=false)
+                
             {
+                var type = VariableTable.GetType(tokenst.Get().Str);
+                var methodInfo = typeof(VariableTable).GetMethod("Get").MakeGenericMethod(type);
+                expr = Expression.Call(methodInfo,Expression.Constant(tokenst.Get().Str));
                 tokenst.Next();
                 return expr;
             }
@@ -255,8 +256,11 @@ namespace D_Sharp
             if (lambdadef != null) ;
             //グローバル変数のラムダ
             else if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
-                  (lambdadef = VariableTable.Find(tokenst.Get().Str)) != null)
+                  (VariableTable.Find(tokenst.Get().Str)) ==true)
             {
+                var type = VariableTable.GetType(tokenst.Get().Str);
+                var methodInfo = typeof(VariableTable).GetMethod("Get").MakeGenericMethod(type);
+                lambdadef = Expression.Call(methodInfo,Expression.Constant( tokenst.Get().Str));
                 tokenst.Next();
             }
             //ローカル変数のラムダ
@@ -373,24 +377,27 @@ namespace D_Sharp
         static Type CreateTypeSpecifier(TokenStream tokenst)
         {
             var checkPoint=tokenst.NowIndex;
-            if (tokenst.Get().Str == "double")
+            Type type;
+            if ((type=CreateType(tokenst.Get().Str)) != null)
             {
                 tokenst.Next();
                 if (tokenst.Get().Str == "::")
                 {
                     tokenst.Next();
-                    return typeof(double);
+                    return type;
                 }
                 if (tokenst.Get().Str == "->")
                 {
                     List<Type> types = new List<Type>();
-                    types.Add(typeof(double));
+                    types.Add(type);
                     while (tokenst.Get().Str == "->")
                     {
+                        if (types[types.Count - 1] == typeof(void))
+                            types.RemoveAt(types.Count - 1);
                         tokenst.Next();
-                        if (tokenst.Get().Str == "double")
+                        if ((type = CreateType(tokenst.Get().Str)) != null)
                         {
-                            types.Add(typeof(double));
+                            types.Add(type);
                             tokenst.Next();
                         }
                         else
@@ -407,6 +414,18 @@ namespace D_Sharp
                 }
             }
             tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        static Type CreateType(string typeName)
+        {
+            switch (typeName)
+            {
+                case"double":
+                    return typeof(double);
+                case "void":
+                    return typeof(void);
+            }
             return null;
         }
 

@@ -7,18 +7,65 @@ using System.Linq.Expressions;
 
 namespace D_Sharp
 {
-    static class VariableTable
+    class GlobalVariable
     {
-        static Dictionary<string,ConstantExpression> table =new Dictionary<string, ConstantExpression>();
-        static public ConstantExpression Find(string name)
+        object value;
+        Type type;
+        public void SetValue(object value)
         {
-            if (table.ContainsKey(name) == false) return null;
-            return table[name];
+            this.value = value;
         }
 
-        static public void Register<T>(string name, T value)
+        public void SetType(Type type)
         {
-            table[name] = Expression.Constant(value);
+            this.type = type;
+        }
+
+        public T GetValue<T>()
+        {
+            return (T)value;
+        }
+
+        public new Type GetType()
+        { return type; }
+
+    }
+
+    static class VariableTable
+    {
+        static Dictionary<string, GlobalVariable> table =new Dictionary<string,GlobalVariable>();
+        static public bool Find(string name)
+        {
+            if (table.ContainsKey(name) == false) return false;
+            return true;
+        }
+
+        static public Type GetType(string name)
+        {
+            return table[name].GetType();
+        }
+
+        static public T Get<T>(string name)
+        {
+            return table[name].GetValue<T>();
+        }
+
+        static public void Remove(string name)
+        {
+            table.Remove(name);
+        }
+
+        static public void SetValue<T>(string name,T value)
+        {
+            table[name].SetValue(value);
+        }
+
+        static public void Register(string name, Type type,object value=null)
+        {
+            var variable = new GlobalVariable();
+            variable.SetType(type);
+            variable.SetValue(value);
+            table[name] =variable;
         }
     }
 
