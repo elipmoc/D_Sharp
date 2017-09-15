@@ -80,6 +80,46 @@ namespace D_Sharp
         //式
         static Expression CreateSiki(TokenStream tokenst)
         {
+            Expression expr;
+            if ((expr = CreateJyoukenEnzan(tokenst)) != null)
+                return expr;
+            return null;
+        }
+
+        //条件演算子
+        static Expression CreateJyoukenEnzan(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            Expression expr;
+            if ((expr = CreateTasizan(tokenst)) != null)
+            {
+                if(tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "?")
+                {
+                    Expression left, right;
+                    tokenst.Next();
+                    if ((left = CreateJyoukenEnzan(tokenst)) != null)
+                    {
+                        if (tokenst.Get().Str == ":")
+                        {
+                            tokenst.Next();
+                            if ((right = CreateJyoukenEnzan(tokenst)) != null)
+                            {
+                                return Expression.Condition(expr, left, right);
+                            }
+                        }
+                    };
+                    tokenst.Rollback(checkPoint);
+                    return null;
+                }
+                return expr;
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //足し算
+        static Expression CreateTasizan(TokenStream tokenst)
+        {
             var checkPoint=tokenst.NowIndex;
             Expression left;
             if ((left = CreateHitosi(tokenst)) != null)
@@ -452,6 +492,8 @@ namespace D_Sharp
             {
                 case"double":
                     return typeof(double);
+                case "bool":
+                    return typeof(bool);
                 case "void":
                     return typeof(void);
             }

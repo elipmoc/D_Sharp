@@ -22,7 +22,16 @@ namespace D_Sharp
         変数宣言
             : [型指定子],識別子,"=",式
             ;
+
         式
+            :条件演算子
+            ;
+
+        条件演算子　
+            :足し算,{"?",条件演算子,":",条件演算子}
+            ;
+
+        足し算
             : 等しい演算子 , { "+" || "-" , 等しい演算子 }
             ;
 
@@ -71,7 +80,7 @@ namespace D_Sharp
             ;
 
         型種類
-            :"double" | "void"
+            :"double" | "void"|"bool"
             ;
                
         */
@@ -89,7 +98,7 @@ namespace D_Sharp
                 }
                 
                 //デバッグ用
-               /* for (int i = 0; i < tokenStream.Size; i++)
+                /*for (int i = 0; i < tokenStream.Size; i++)
                     tokenStream[i].DebugPrint();*/
 
 
