@@ -11,17 +11,17 @@ namespace D_Sharp
     static class builti_in_functions
     {
        static public double print(double d) {
-            Console.WriteLine(d);
+            Console.WriteLine("( ﾟДﾟ)　" + d);
             return d;
         }
         static public bool print(bool d)
         {
-            Console.WriteLine(d);
+            Console.WriteLine("( ﾟДﾟ)　"+d);
             return d;
         }
         static public Delegate print(Delegate lambda)
         {
-            Console.WriteLine(lambda);
+            Console.WriteLine("( ﾟДﾟ)　" + lambda);
             return lambda;
         }
     }

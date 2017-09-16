@@ -92,10 +92,11 @@ namespace D_Sharp
 
                 try
                 {
+                    Console.Write("!(^^)!　");
                     var tokenStream = LexicalAnalyzer.Lexicalanalysis(Console.ReadLine());
                     if (tokenStream == null)
                     {
-                        Console.WriteLine("token error!!");
+                        Console.WriteLine("( ;∀;)　token error!!");
                         continue;
                     }
 
@@ -107,7 +108,7 @@ namespace D_Sharp
                     var func = CreateTree.CreateStatement(tokenStream);
                     if (func == null)
                     {
-                        Console.WriteLine("Tree error!!");
+                        Console.WriteLine("( ;∀;)　Tree error!!");
                         continue;
                     }
                     func();
