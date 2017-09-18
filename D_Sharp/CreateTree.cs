@@ -45,8 +45,8 @@ namespace D_Sharp
         static Expression CreateVariableDeclaration(TokenStream tokenst)
         {
             var checkPoint = tokenst.NowIndex;
-            Type type;
-            if ((type = CreateTypeSpecifier(tokenst)) == null)
+            Type[] types;
+            if ((types = CreateTypeSpecifier(tokenst)) == null)
             {
                 tokenst.Rollback(checkPoint);
                 return null;
@@ -57,12 +57,12 @@ namespace D_Sharp
                 variableName = tokenst.Get().Str;
                 if (VariableTable.Find(variableName) == false)
                 {
-                    VariableTable.Register(variableName, type);
+                    VariableTable.Register(variableName, Expression.GetDelegateType(types));
                     tokenst.Next();
                     if (tokenst.Get().Str == "=")
                     {
                         tokenst.Next();
-                        var expr = CreateSiki(tokenst);
+                        var expr = CreateSiki(tokenst,types);
                         if (expr != null)
                         {
                             var methodInfo = typeof(VariableTable).GetMethod("SetValue").MakeGenericMethod(expr.Type);
@@ -78,31 +78,31 @@ namespace D_Sharp
         }
 
         //式
-        static Expression CreateSiki(TokenStream tokenst)
+        static Expression CreateSiki(TokenStream tokenst, Type[] argTypes=null)
         {
             Expression expr;
-            if ((expr = CreateJyoukenEnzan(tokenst)) != null)
+            if ((expr = CreateJyoukenEnzan(tokenst,argTypes)) != null)
                 return expr;
             return null;
         }
 
         //条件演算子
-        static Expression CreateJyoukenEnzan(TokenStream tokenst)
+        static Expression CreateJyoukenEnzan(TokenStream tokenst, Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
             Expression expr;
-            if ((expr = CreateTasizan(tokenst)) != null)
+            if ((expr = CreateTasizan(tokenst,argTypes)) != null)
             {
                 if(tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "?")
                 {
                     Expression left, right;
                     tokenst.Next();
-                    if ((left = CreateJyoukenEnzan(tokenst)) != null)
+                    if ((left = CreateJyoukenEnzan(tokenst,argTypes)) != null)
                     {
                         if (tokenst.Get().Str == ":")
                         {
                             tokenst.Next();
-                            if ((right = CreateJyoukenEnzan(tokenst)) != null)
+                            if ((right = CreateJyoukenEnzan(tokenst,argTypes)) != null)
                             {
                                 return Expression.Condition(expr, left, right);
                             }
@@ -118,11 +118,11 @@ namespace D_Sharp
         }
 
         //足し算
-        static Expression CreateTasizan(TokenStream tokenst)
+        static Expression CreateTasizan(TokenStream tokenst, Type[] argTypes)
         {
             var checkPoint=tokenst.NowIndex;
             Expression left;
-            if ((left = CreateHitosi(tokenst)) != null)
+            if ((left = CreateHitosi(tokenst,argTypes)) != null)
             {
                 Expression right;
                 string op;
@@ -130,7 +130,7 @@ namespace D_Sharp
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateHitosi(tokenst)) == null)
+                    if ((right = CreateHitosi(tokenst,argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -145,11 +145,11 @@ namespace D_Sharp
         }
 
         //等しい演算子
-        static Expression CreateHitosi(TokenStream tokenst)
+        static Expression CreateHitosi(TokenStream tokenst, Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
             Expression left;
-            if ((left = CreateKou(tokenst)) != null)
+            if ((left = CreateKou(tokenst,argTypes)) != null)
             {
                 Expression right;
                 string op;
@@ -157,7 +157,7 @@ namespace D_Sharp
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateKou(tokenst)) == null)
+                    if ((right = CreateKou(tokenst,argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -172,7 +172,7 @@ namespace D_Sharp
         }
 
         //項
-        static Expression CreateKou(TokenStream tokenst)
+        static Expression CreateKou(TokenStream tokenst, Type[] argTypes)
         {
             var checkPoint=tokenst.NowIndex;
             bool signedFlag = false;
@@ -182,7 +182,7 @@ namespace D_Sharp
                 tokenst.Next();
                 signedFlag = true;
             }
-            if ((left = CreateInsi(tokenst)) != null)
+            if ((left = CreateInsi(tokenst,argTypes)) != null)
             {
                 Expression right;
                 string op;
@@ -190,7 +190,7 @@ namespace D_Sharp
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateInsi(tokenst)) == null)
+                    if ((right = CreateInsi(tokenst,argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -207,7 +207,7 @@ namespace D_Sharp
         }
 
         //因子
-        static Expression CreateInsi(TokenStream tokenst)
+        static Expression CreateInsi(TokenStream tokenst,Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
             Expression expr;
@@ -245,7 +245,7 @@ namespace D_Sharp
                 return expr;
             }
             //ラムダ定義
-            else if ((expr=CreateLambdaDefinition(tokenst))!=null)
+            else if ((expr=CreateLambdaDefinition(tokenst,argTypes))!=null)
             {
                 return expr;
             }
@@ -328,11 +328,16 @@ namespace D_Sharp
         static Expression CreateLambdaCall(TokenStream tokenst)
         {
             var checkPoint = tokenst.NowIndex;
+
             //直接書かれたラムダ
-            var lambdadef = CreateLambdaDefinition(tokenst);
-            if (lambdadef != null) ;
+            /*   var lambdadef = CreateLambdaDefinition(tokenst,argTypes);
+               if (lambdadef != null) ;*/
+
+            Expression lambdadef;
+            
+
             //グローバル変数のラムダ
-            else if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
+            if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
                   (VariableTable.Find(tokenst.Get().Str)) ==true)
             {
                 var type = VariableTable.GetType(tokenst.Get().Str);
@@ -369,7 +374,7 @@ namespace D_Sharp
         }
 
         //ラムダ定義
-        static Expression CreateLambdaDefinition(TokenStream tokenst)
+        static Expression CreateLambdaDefinition(TokenStream tokenst, Type[] argTypes)
         {
             var checkPoint=tokenst.NowIndex;
             LocalVariableTable.In();
@@ -377,7 +382,7 @@ namespace D_Sharp
             {
                 tokenst.Next();
                 List<ParameterExpression> argsDecl;
-                if ((argsDecl = CreateArgsDeclaration(tokenst)) != null)
+                if ((argsDecl = CreateArgsDeclaration(tokenst,argTypes)) != null)
                 {
                     if (tokenst.Get().Str == ")")
                     {
@@ -402,13 +407,17 @@ namespace D_Sharp
         }
 
         //引数宣言
-        static List<ParameterExpression> CreateArgsDeclaration(TokenStream tokenst)
+        static List<ParameterExpression> CreateArgsDeclaration(TokenStream tokenst,Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
+
+            //引数のインデックス
+            int argIndex=0;
+
             if (tokenst.Get().TokenType==TokenType.Identifier)
             {
                 List<ParameterExpression> args = new List<ParameterExpression>();
-                var parameter= Expression.Parameter(typeof(double), tokenst.Get().Str);
+                var parameter= Expression.Parameter(argTypes[argIndex++], tokenst.Get().Str);
                 LocalVariableTable.Register(tokenst.Get().Str, parameter);
                 args.Add(parameter);
                 tokenst.Next();
@@ -417,7 +426,7 @@ namespace D_Sharp
                     tokenst.Next();
                     if (tokenst.Get().TokenType == TokenType.Identifier)
                     {
-                        parameter = Expression.Parameter(typeof(double), tokenst.Get().Str);
+                        parameter = Expression.Parameter(argTypes[argIndex++], tokenst.Get().Str);
                         LocalVariableTable.Register(tokenst.Get().Str, parameter);
                         args.Add(parameter);
                         tokenst.Next();
@@ -451,7 +460,7 @@ namespace D_Sharp
         }
 
         //型指定子
-        static Type CreateTypeSpecifier(TokenStream tokenst)
+        static Type[] CreateTypeSpecifier(TokenStream tokenst)
         {
             var checkPoint=tokenst.NowIndex;
             Type type;
@@ -461,7 +470,7 @@ namespace D_Sharp
                 if (tokenst.Get().Str == "::")
                 {
                     tokenst.Next();
-                    return type;
+                    return new[] { type };
                 }
                 if (tokenst.Get().Str == "->")
                 {
@@ -486,7 +495,7 @@ namespace D_Sharp
                     if (tokenst.Get().Str == "::")
                     {
                         tokenst.Next();
-                        return Expression.GetDelegateType(types.ToArray());
+                        return types.ToArray();
                     }
                 }
             }
