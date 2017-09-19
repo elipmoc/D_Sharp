@@ -46,7 +46,7 @@ namespace D_Sharp
         {
             var checkPoint = tokenst.NowIndex;
             Type[] types;
-            if ((types = CreateTypeSpecifier(tokenst)) == null)
+            if ((types = CreateTypeSpecifier3(tokenst)) == null)
             {
                 tokenst.Rollback(checkPoint);
                 return null;
@@ -57,16 +57,21 @@ namespace D_Sharp
                 variableName = tokenst.Get().Str;
                 if (VariableTable.Find(variableName) == false)
                 {
-                    VariableTable.Register(variableName, Expression.GetDelegateType(types));
+                    if (types.Count() == 1)
+                        VariableTable.Register(variableName, types[0]);
+                    else if (types[0] == typeof(void))
+                        VariableTable.Register(variableName, Expression.GetDelegateType(types.Skip<Type>(1).ToArray()));
+                    else
+                        VariableTable.Register(variableName, Expression.GetDelegateType(types));
                     tokenst.Next();
                     if (tokenst.Get().Str == "=")
                     {
                         tokenst.Next();
-                        var expr = CreateSiki(tokenst,types);
+                        var expr = CreateSiki(tokenst, types);
                         if (expr != null)
                         {
                             var methodInfo = typeof(VariableTable).GetMethod("SetValue").MakeGenericMethod(expr.Type);
-                            return Expression.Call(methodInfo,Expression.Constant(variableName),expr);
+                            return Expression.Call(methodInfo, Expression.Constant(variableName), expr);
                         }
 
                     }
@@ -278,7 +283,7 @@ namespace D_Sharp
                 {
                     tokenst.Next();
                     List<Expression> args;
-                    if ((args=CreateArgs(tokenst)) != null)
+                    if ((args=CreateArgs(tokenst,null)) != null)
                     {
                         if (tokenst.Get().Str == ")")
                         {
@@ -298,19 +303,20 @@ namespace D_Sharp
         }
 
         //引数
-        static List<Expression> CreateArgs(TokenStream tokenst)
+        static List<Expression> CreateArgs(TokenStream tokenst,Type[] argTypes)
         {
            
             var checkPoint=tokenst.NowIndex;
+            int argsIndex=0;
             Expression expr;
-            if ((expr = CreateSiki(tokenst)) != null)
+            if ((expr = CreateSiki(tokenst,argTypes==null?null:new[] { argTypes[argsIndex++] })) != null)
             {
                 List<Expression> args=new List<Expression>();
                 args.Add(expr);
                 while (tokenst.Get().Str==",")
                 {
                     tokenst.Next();
-                    expr = CreateSiki(tokenst);
+                    expr = CreateSiki(tokenst,argTypes == null ? null : new[] { argTypes[argsIndex++] });
                     if (expr == null)
                     {
                         tokenst.Rollback(checkPoint);
@@ -360,7 +366,7 @@ namespace D_Sharp
             {
                 tokenst.Next();
                 List<Expression> args;
-                if ((args=CreateArgs(tokenst))!= null)
+                if ((args=CreateArgs(tokenst,DelegateHelper.GetTypesFromDelegate(lambdadef.Type)))!= null)
                 {
                     if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ")")
                     {
@@ -382,6 +388,8 @@ namespace D_Sharp
             {
                 tokenst.Next();
                 List<ParameterExpression> argsDecl;
+                if (argTypes.Count() == 1)
+                    argTypes = DelegateHelper.GetTypesFromDelegate(argTypes[0]);
                 if ((argsDecl = CreateArgsDeclaration(tokenst,argTypes)) != null)
                 {
                     if (tokenst.Get().Str == ")")
@@ -390,7 +398,7 @@ namespace D_Sharp
                         if (tokenst.Get().Str == "{")
                         {
                             tokenst.Next();
-                            var body = CreateSiki(tokenst);
+                            var body = CreateSiki(tokenst,argTypes.Skip(argTypes.Count()-1).ToArray());
                             if (body != null && tokenst.Get().Str == "}")
                             {
                                 tokenst.Next();
@@ -464,12 +472,10 @@ namespace D_Sharp
         {
             var checkPoint=tokenst.NowIndex;
             Type type;
-            if ((type=CreateType(tokenst.Get().Str)) != null)
+            if ((type=CreateTypeSpecifier2(tokenst)) != null)
             {
-                tokenst.Next();
-                if (tokenst.Get().Str == "::")
+                if (tokenst.Get().Str == "::" || tokenst.Get().Str == "]")
                 {
-                    tokenst.Next();
                     return new[] { type };
                 }
                 if (tokenst.Get().Str == "->")
@@ -478,13 +484,10 @@ namespace D_Sharp
                     types.Add(type);
                     while (tokenst.Get().Str == "->")
                     {
-                        if (types[types.Count - 1] == typeof(void))
-                            types.RemoveAt(types.Count - 1);
                         tokenst.Next();
-                        if ((type = CreateType(tokenst.Get().Str)) != null)
+                        if ((type = CreateTypeSpecifier2(tokenst)) != null)
                         {
                             types.Add(type);
-                            tokenst.Next();
                         }
                         else
                         {
@@ -492,12 +495,64 @@ namespace D_Sharp
                             return null;
                         }
                     }
-                    if (tokenst.Get().Str == "::")
+                    if (tokenst.Get().Str == "::" || tokenst.Get().Str == "]")
                     {
-                        tokenst.Next();
                         return types.ToArray();
                     }
                 }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //型指定子2
+        static Type CreateTypeSpecifier2(TokenStream tokenst)
+        {
+            var checkPoint=tokenst.NowIndex;
+
+            // [ 型指定子 ]
+            if (tokenst.Get().Str == "[")
+            {
+                Type[] types;
+                tokenst.Next();
+                if ((types = CreateTypeSpecifier(tokenst)) != null)
+                {
+                    if (tokenst.Get().Str == "]")
+                    {
+                        tokenst.Next();
+                        if (types.Count() == 1)
+                            return types[0];
+                        else if (types[0] == typeof(void))
+                            return Expression.GetDelegateType(types.Skip(1).ToArray());
+                        else
+                            return Expression.GetDelegateType(types);
+                    }
+                }
+                tokenst.Rollback(checkPoint);
+                return null;
+            }
+
+            //型種類
+            Type type;
+            if ((type = CreateType(tokenst.Get().Str)) != null)
+            {
+                tokenst.Next();
+                return type;
+            }
+
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //型指定子3
+        static Type[] CreateTypeSpecifier3(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            var types = CreateTypeSpecifier(tokenst);
+            if (types != null && tokenst.Get().Str == "::")
+            {
+                tokenst.Next();
+                return types;
             }
             tokenst.Rollback(checkPoint);
             return null;

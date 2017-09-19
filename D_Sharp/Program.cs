@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace D_Sharp
 {
@@ -75,8 +76,17 @@ namespace D_Sharp
             :[識別子 , {"," , 識別子}]
             ;
 
+        型指定子3
+            :型指定子 , "::"
+            ; 
+           
+        型指定子2
+            :型種類 | "[", 型指定子 , "]"  
+            ;
+
+
         型指定子
-            : 型種類,{"->",型種類},"::"
+            :型指定子2 | , {"->",型指定子2}
             ;
 
         型種類
@@ -87,6 +97,8 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+
+          
             while (true)
             {
 
