@@ -34,5 +34,26 @@ namespace D_Sharp
         {
             return t.Take((int)range).ToArray();
         }
+
+        //配列結合
+        static public T[] merge<T>(T[]a,T[] b)
+        {
+            var list = a.ToList();
+            list.AddRange(b);
+            return list.ToArray();
+        }
+
+        //配列表示
+        static public T[] printlist<T>(T[] t)
+        {
+            string str="[";
+            foreach(var item in t)
+            {
+                str+=item+",";
+            }
+            str=str.Remove(str.Length - 1,1)+"]";
+            print(str);
+            return t;
+        }
     }
 }

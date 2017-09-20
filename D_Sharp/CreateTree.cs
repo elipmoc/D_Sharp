@@ -348,7 +348,7 @@ namespace D_Sharp
                             MethodInfo methodInfo;
                             MethodInfo makeGeneric;
                             methodInfo = typeof(builti_in_functions).GetMethod(funcName);
-                            if (funcName == "get"||funcName=="getlen"||funcName=="take")
+                            if (funcName == "get"||funcName=="getlen"||funcName=="take"|| funcName == "merge"||funcName=="printlist")
                             {
                                 makeGeneric = methodInfo.MakeGenericMethod(args[0].Type.GetElementType());
                             }
@@ -541,7 +541,7 @@ namespace D_Sharp
             Type type;
             if ((type=CreateTypeSpecifier2(tokenst)) != null)
             {
-                if (tokenst.Get().Str == "::" || tokenst.Get().Str == "]")
+                if (tokenst.Get().Str == "::" || tokenst.Get().Str == "]" || tokenst.Get().Str=="[")
                 {
                     return new[] { type };
                 }
@@ -562,7 +562,7 @@ namespace D_Sharp
                             return null;
                         }
                     }
-                    if (tokenst.Get().Str == "::" || tokenst.Get().Str == "]")
+                    if (tokenst.Get().Str == "::" || tokenst.Get().Str == "]" || tokenst.Get().Str == "[")
                     {
                         return types.ToArray();
                     }
@@ -576,6 +576,7 @@ namespace D_Sharp
         static Type CreateTypeSpecifier2(TokenStream tokenst)
         {
             var checkPoint=tokenst.NowIndex;
+            Type type=null;
 
             // [ 型指定子 ]
             if (tokenst.Get().Str == "[")
@@ -588,27 +589,48 @@ namespace D_Sharp
                     {
                         tokenst.Next();
                         if (types.Count() == 1)
-                            return types[0];
+                            type= types[0];
                         else if (types[0] == typeof(void))
-                            return Expression.GetDelegateType(types.Skip(1).ToArray());
+                            type= Expression.GetDelegateType(types.Skip(1).ToArray());
                         else
-                            return Expression.GetDelegateType(types);
+                            type= Expression.GetDelegateType(types);
                     }
                 }
+            }
+            //型種類
+            else if ((type = CreateType(tokenst.Get().Str)) != null)
+            {
+                tokenst.Next();
+            }
+            if (type != null)
+            {
+                while (true)
+                {
+                    if (tokenst.Get().Str == "[")
+                    {
+                        tokenst.Next();
+                        if (tokenst.Get().Str == "]")
+                        {
+                            tokenst.Next();
+                            type = type.MakeArrayType();
+                        }
+                        else
+                        {
+                            tokenst.Rollback(checkPoint);
+                            return null;
+                        }
+                    }
+                    else
+                        break;
+                }
+            }
+            if (type == null)
+            {
                 tokenst.Rollback(checkPoint);
                 return null;
             }
+            return type;
 
-            //型種類
-            Type type;
-            if ((type = CreateType(tokenst.Get().Str)) != null)
-            {
-                tokenst.Next();
-                return type;
-            }
-
-            tokenst.Rollback(checkPoint);
-            return null;
         }
 
         //型指定子3
