@@ -223,6 +223,11 @@ namespace D_Sharp
                 tokenst.Next();
                 return constant_double;
             }
+            //リスト
+            else if ((expr=CreateList(tokenst))!=null)
+            {
+                return expr;
+            }
             //ラムダ呼び出し
             else if ((expr = CreateLambdaCall(tokenst)) != null)
             {
@@ -266,6 +271,58 @@ namespace D_Sharp
                         return expr;
                     }
                 }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //リスト
+        static Expression CreateList(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().Str == "[")
+            {
+                tokenst.Next();
+                var array = CreateListNakami(tokenst);
+                if (array != null)
+                {
+                    if (tokenst.Get().Str == "]")
+                    {
+                        tokenst.Next();
+                        return array;
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+
+        }
+
+        //リスト中身
+        static Expression CreateListNakami(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            Expression expr;
+            List<Expression> exprList=new List<Expression>();
+            if ((expr = CreateSiki(tokenst)) != null)
+            {
+                var type = expr.Type;
+                exprList.Add(expr);
+                while (tokenst.Get().Str == ",")
+                {
+                    tokenst.Next();
+                    if ((expr = CreateSiki(tokenst, new[] { type })) != null)
+                    {
+                        exprList.Add(expr);
+                    }
+                    else
+                    {
+                        tokenst.Rollback(checkPoint);
+                        return null;
+                    }
+
+                }
+                return Expression.NewArrayInit(type, exprList.ToArray());
             }
             tokenst.Rollback(checkPoint);
             return null;
