@@ -10,19 +10,29 @@ namespace D_Sharp
     //組み込み関数
     static class builti_in_functions
     {
-       static public double print(double d) {
-            Console.WriteLine("( ﾟДﾟ)　" + d);
-            return d;
-        }
-        static public bool print(bool d)
+
+        static public T print<T>(T t)
         {
-            Console.WriteLine("( ﾟДﾟ)　"+d);
-            return d;
+            Console.WriteLine("( ﾟДﾟ)　" + t);
+            return t;
         }
-        static public Delegate print(Delegate lambda)
+
+        //配列添え字アクセス
+        static public T get<T>(T[] t,double index)
         {
-            Console.WriteLine("( ﾟДﾟ)　" + lambda);
-            return lambda;
+            return t[(int)index];
+        }
+
+        //配列要素数ゲット
+        static public double getlen<T>(T[] t)
+        {
+            return t.Count();
+        }
+
+        //配列取り出し
+        static public T[] take<T>(T[] t,double range)
+        {
+            return t.Take((int)range).ToArray();
         }
     }
 }

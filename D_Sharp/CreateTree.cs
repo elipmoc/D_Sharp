@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace D_Sharp
 {
@@ -344,12 +345,21 @@ namespace D_Sharp
                     {
                         if (tokenst.Get().Str == ")")
                         {
-                            
-                            var methodInfo=typeof(builti_in_functions).GetMethod(funcName, args.Select(x => x.Type).ToArray());
-                            if (methodInfo != null)
+                            MethodInfo methodInfo;
+                            MethodInfo makeGeneric;
+                            methodInfo = typeof(builti_in_functions).GetMethod(funcName);
+                            if (funcName == "get"||funcName=="getlen"||funcName=="take")
+                            {
+                                makeGeneric = methodInfo.MakeGenericMethod(args[0].Type.GetElementType());
+                            }
+                            else
+                            {
+                                makeGeneric = methodInfo.MakeGenericMethod(args.Select(x => x.Type).ToArray());
+                            }
+                            if (makeGeneric != null)
                             {
                                 tokenst.Next();
-                               return Expression.Call(methodInfo, args);
+                               return Expression.Call(makeGeneric, args);
                             }
                         }
                     }
