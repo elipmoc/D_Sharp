@@ -188,7 +188,7 @@ namespace D_Sharp
                 tokenst.Next();
                 signedFlag = true;
             }
-            if ((left = CreateInsi(tokenst,argTypes)) != null)
+            if ((left = CreateLambdaCall(tokenst,argTypes)) != null)
             {
                 Expression right;
                 string op;
@@ -196,7 +196,7 @@ namespace D_Sharp
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateInsi(tokenst,argTypes)) == null)
+                    if ((right = CreateLambdaCall(tokenst,argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -226,11 +226,6 @@ namespace D_Sharp
             }
             //リスト
             else if ((expr=CreateList(tokenst,argTypes))!=null)
-            {
-                return expr;
-            }
-            //ラムダ呼び出し
-            else if ((expr = CreateLambdaCall(tokenst)) != null)
             {
                 return expr;
             }
@@ -401,7 +396,7 @@ namespace D_Sharp
         }
 
         //ラムダ呼び出し
-        static Expression CreateLambdaCall(TokenStream tokenst)
+        static Expression CreateLambdaCall(TokenStream tokenst,Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
 
@@ -409,44 +404,58 @@ namespace D_Sharp
             /*   var lambdadef = CreateLambdaDefinition(tokenst,argTypes);
                if (lambdadef != null) ;*/
 
-            Expression lambdadef;
-            
+            Expression expr;
 
-            //グローバル変数のラムダ
-            if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
-                  (VariableTable.Find(tokenst.Get().Str)) ==true)
-            {
-                var type = VariableTable.GetType(tokenst.Get().Str);
-                var methodInfo = typeof(VariableTable).GetMethod("Get").MakeGenericMethod(type);
-                lambdadef = Expression.Call(methodInfo,Expression.Constant( tokenst.Get().Str));
-                tokenst.Next();
-            }
-            //ローカル変数のラムダ
-            else if ((lambdadef = CreateLocalVariableExpr(tokenst)) != null)
-            {
+            /*
+                        //グローバル変数のラムダ
+                        if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
+                              (VariableTable.Find(tokenst.Get().Str)) ==true)
+                        {
+                            var type = VariableTable.GetType(tokenst.Get().Str);
+                            var methodInfo = typeof(VariableTable).GetMethod("Get").MakeGenericMethod(type);
+                            lambdadef = Expression.Call(methodInfo,Expression.Constant( tokenst.Get().Str));
+                            tokenst.Next();
+                        }
+                        //ローカル変数のラムダ
+                        else if ((lambdadef = CreateLocalVariableExpr(tokenst)) != null)
+                        {
+                        }*/
+            if ((expr = CreateInsi(tokenst, argTypes)) != null){
+                
             }
             else
             {
                 tokenst.Rollback(checkPoint);
                 return null;
             }
-            
+
+            List<Expression> args;
+
             //引数確認
-            if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "(")
+            while (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "(")
             {
                 tokenst.Next();
-                List<Expression> args;
-                if ((args=CreateArgs(tokenst,DelegateHelper.GetTypesFromDelegate(lambdadef.Type)))!= null)
+                
+                if ((args=CreateArgs(tokenst,DelegateHelper.GetTypesFromDelegate(expr.Type)))!= null)
                 {
                     if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ")")
                     {
                         tokenst.Next();
-                        return Expression.Invoke(lambdadef,args);
+                        expr= Expression.Invoke(expr,args);
+                    }
+                    else
+                    {
+                        tokenst.Rollback(checkPoint);
+                        return null;
                     }
                 }
+                else
+                {
+                    tokenst.Rollback(checkPoint);
+                    return null;
+                }
             }
-            tokenst.Rollback(checkPoint);
-            return null;
+            return expr;
         }
 
         //ラムダ定義
