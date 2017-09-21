@@ -13,6 +13,7 @@ namespace D_Sharp
         static public TokenStream Lexicalanalysis(string str)
         {
             var tokenlist = new List<Token>();
+            var comment = new Regex(@"\/\*[^(\*\/)]*\*\/");
             var space = new Regex(@"^[ \t]+");
             var num = new Regex(@"^\d+(\.\d+)?");
             var symbol = new Regex(@"^((void)|(double)|(bool)|(->)|(::)|(==)|(<=)|(>=)|(!=)|[<>\[\]:\?\+\-%\*\/{}\(\)=,])");
@@ -22,6 +23,7 @@ namespace D_Sharp
             while (str.Length!=0)
             {
                 if ((match = space.Match(str)).Success) ;
+                else if ((match = comment.Match(str)).Success) ;
                 else if ((match = num.Match(str)).Success)
                     tokenlist.Add(new Token(match.Value, TokenType.Double));
                 else if ((match = symbol.Match(str)).Success)

@@ -67,6 +67,15 @@ namespace D_Sharp
            return t.Skip(1).ToArray();
         }
 
+        //配列に配列を挿入
+        static public T[] insert<T>(T[] a, T[] b,double index)
+        {
+            var list = b.Take((int)index).ToList();
+            list.AddRange(a);
+            list.AddRange(b.Skip((int)index));
+            return list.ToArray();
+        }
+
         //配列表示
         static public T[] printlist<T>(T[] t)
         {

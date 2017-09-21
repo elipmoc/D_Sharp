@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using System.IO;
 
 namespace D_Sharp
 {
@@ -106,6 +107,30 @@ namespace D_Sharp
         static void Main(string[] args)
         {
 
+            //ファイルからプログラム読み込み
+            StreamReader sr =
+                new StreamReader("main.ds", Encoding.GetEncoding("Shift_JIS"));
+
+            string line,buf;
+            while (true)
+            {
+                line = "";
+                while ((buf = sr.ReadLine()) != null)
+                {
+                    line += buf;
+                    Console.Write("!(^^)!　");
+                    Console.WriteLine(buf);
+
+                    if (line.Count()>0&&line[line.Count() - 1] == ';')
+                    {
+
+                        break;
+                    }
+                }
+                if (buf == null) break;
+                Interpreter.ReadLine(line);
+            }
+            sr.Close();
             string str;
             while (true)
             {
@@ -114,7 +139,7 @@ namespace D_Sharp
                 {
                     Console.Write("!(^^)!　");
                     str += Console.ReadLine();
-                    if (str[str.Count() - 1] == ';')
+                    if (str.Count() > 0 && str[str.Count() - 1] == ';')
                         break;
                 }
                 Interpreter.ReadLine(str);
