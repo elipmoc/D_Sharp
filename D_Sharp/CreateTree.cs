@@ -322,7 +322,7 @@ namespace D_Sharp
             var checkPoint = tokenst.NowIndex;
             Expression expr;
             List<Expression> exprList=new List<Expression>();
-            if ((expr = CreateSiki(tokenst,new[] { argTypes!=null?argTypes[0].GetElementType():null })) != null)
+            if ((expr = CreateSiki(tokenst, argTypes != null ? new[] { argTypes[0].GetElementType()}:null)) != null)
             {
                 var type = expr.Type;
                 exprList.Add(expr);

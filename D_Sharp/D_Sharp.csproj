@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="builti_in_functions.cs" />
     <Compile Include="CreateTree.cs" />
+    <Compile Include="Interpreter.cs" />
     <Compile Include="LexicalAnalyzer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

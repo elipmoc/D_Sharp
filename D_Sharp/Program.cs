@@ -110,7 +110,6 @@ namespace D_Sharp
             while (true)
             {
                 str = "";
-                
                 while (true)
                 {
                     Console.Write("!(^^)!　");
@@ -118,33 +117,8 @@ namespace D_Sharp
                     if (str[str.Count() - 1] == ';')
                         break;
                 }
-                try
-                {
-                    
-                    var tokenStream = LexicalAnalyzer.Lexicalanalysis(str.Remove(str.Count()-1,1));
-                    if (tokenStream == null)
-                    {
-                        Console.WriteLine("( ;∀;)　token error!!");
-                        continue;
-                    }
-
-                    //デバッグ用
-                    /*for (int i = 0; i < tokenStream.Size; i++)
-                        tokenStream[i].DebugPrint();*/
-
-
-                    var func = CreateTree.CreateStatement(tokenStream);
-                    if (func == null)
-                    {
-                        Console.WriteLine("( ;∀;)　Tree error!!");
-                        continue;
-                    }
-                    func();
-                }
-                catch (Exception except) {
-                    Console.WriteLine(except.Message);
-                    continue;
-                }
+                Interpreter.ReadLine(str);
+               
 
                
             }
