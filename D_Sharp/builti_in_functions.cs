@@ -35,6 +35,12 @@ namespace D_Sharp
             return t.Take((int)range).ToArray();
         }
 
+        //配列を先頭からｎ個取り出す
+        static public T[] drop<T>(T[] t, double range)
+        {
+            return t.Skip((int)range).ToArray();
+        }
+
         //配列結合
         static public T[] merge<T>(T[]a,T[] b)
         {
@@ -69,7 +75,7 @@ namespace D_Sharp
             {
                 str+=item+",";
             }
-            str=str.Remove(str.Length - 1,1)+"]";
+            str=(str.Length==1?str:str.Remove(str.Length - 1,1))+"]";
             print(str);
             return t;
         }

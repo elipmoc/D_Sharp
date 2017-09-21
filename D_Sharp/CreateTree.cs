@@ -368,7 +368,7 @@ namespace D_Sharp
                             if (funcName == "get"||funcName=="getlen"||
                                 funcName=="take"|| funcName == "merge"||
                                 funcName=="printlist" ||funcName=="tail"||
-                                funcName=="head" || funcName=="last")
+                                funcName=="head" || funcName=="last"|| funcName=="drop")
                             {
                                 makeGeneric = methodInfo.MakeGenericMethod(args[0].Type.GetElementType());
                             }
