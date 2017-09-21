@@ -47,16 +47,17 @@ namespace D_Sharp
         {
             var checkPoint = tokenst.NowIndex;
             Type[] types;
-            if ((types = CreateTypeSpecifier3(tokenst)) == null)
-            {
-                tokenst.Rollback(checkPoint);
-                return null;
-            }
+            /*   if ((types = CreateTypeSpecifier3(tokenst)) == null)
+               {
+                   tokenst.Rollback(checkPoint);
+                   return null;
+               }*/
+            types = CreateTypeSpecifier3(tokenst);
             string variableName;
             if (tokenst.Get().TokenType == TokenType.GlobalVariable)
             {
                 variableName = tokenst.Get().Str;
-                if (VariableTable.Find(variableName) == false)
+                if (VariableTable.Find(variableName) == false && types != null)
                 {
                     if (types.Count() == 1)
                         VariableTable.Register(variableName, types[0]);
@@ -64,20 +65,25 @@ namespace D_Sharp
                         VariableTable.Register(variableName, Expression.GetDelegateType(types.Skip<Type>(1).ToArray()));
                     else
                         VariableTable.Register(variableName, Expression.GetDelegateType(types));
-                    tokenst.Next();
-                    if (tokenst.Get().Str == "=")
-                    {
-                        tokenst.Next();
-                        var expr = CreateSiki(tokenst, types);
-                        if (expr != null)
-                        {
-                            var methodInfo = typeof(VariableTable).GetMethod("SetValue").MakeGenericMethod(expr.Type);
-                            return Expression.Call(methodInfo, Expression.Constant(variableName), expr);
-                        }
-
-                    }
-                    VariableTable.Remove(variableName);
                 }
+                tokenst.Next();
+                if (tokenst.Get().Str == "=")
+                {
+                    tokenst.Next();
+                    var expr = CreateSiki(tokenst, types);
+                    if (expr != null)
+                    {
+                        if (VariableTable.Find(variableName) == false && types == null)
+                        {
+                            VariableTable.Register(variableName, expr.Type);
+                        }
+                        var methodInfo = typeof(VariableTable).GetMethod("SetValue").MakeGenericMethod(expr.Type);
+                        return Expression.Call(methodInfo, Expression.Constant(variableName), expr);
+                    }
+
+                }
+                VariableTable.Remove(variableName);
+
             }
             tokenst.Rollback(checkPoint);
             return null;
