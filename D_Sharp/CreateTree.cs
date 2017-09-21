@@ -26,6 +26,14 @@ namespace D_Sharp
                     return Expression.Divide(left, right);
                 case "==":
                     return Expression.Equal(left, right);
+                case "<=":
+                    return Expression.LessThanOrEqual(left, right);
+                case ">=":
+                    return Expression.GreaterThanOrEqual(left,right);
+                case "<":
+                    return Expression.LessThan(left, right);
+                case ">":
+                    return Expression.GreaterThan(left, right);
             }
             return null;
         }
@@ -165,7 +173,11 @@ namespace D_Sharp
             {
                 Expression right;
                 string op;
-                while (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "==")
+                while (tokenst.NowIndex < tokenst.Size &&( 
+                    tokenst.Get().Str == "=="|| tokenst.Get().Str == "<=" ||
+                    tokenst.Get().Str == ">=" || tokenst.Get().Str == "<" ||
+                    tokenst.Get().Str == ">"||tokenst.Get().Str == "!=" 
+                    ))
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
@@ -473,7 +485,7 @@ namespace D_Sharp
             {
                 tokenst.Next();
                 List<ParameterExpression> argsDecl;
-                if (argTypes.Count() == 1)
+                if (argTypes!=null&&argTypes.Count() == 1)
                     argTypes = DelegateHelper.GetTypesFromDelegate(argTypes[0]);
                 if ((argsDecl = CreateArgsDeclaration(tokenst,argTypes)) != null)
                 {
