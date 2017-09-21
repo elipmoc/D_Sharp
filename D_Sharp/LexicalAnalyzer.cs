@@ -15,7 +15,7 @@ namespace D_Sharp
             var tokenlist = new List<Token>();
             var space = new Regex(@"^[ \t]+");
             var num = new Regex(@"^\d+(\.\d+)?");
-            var symbol = new Regex(@"^((void)|(double)|(bool)|(->)|(::)|(==)|(<=)|(>=)|[<>\[\]:\?\+\-\*\/{}\(\)=,])");
+            var symbol = new Regex(@"^((void)|(double)|(bool)|(->)|(::)|(==)|(<=)|(>=)|(!=)|[<>\[\]:\?\+\-%\*\/{}\(\)=,])");
             var Identifier = new Regex(@"^[a-z]+");
             var GlobalVariable = new Regex(@"^g_[a-z]+");
             Match match;

@@ -24,8 +24,12 @@ namespace D_Sharp
                     return Expression.Multiply(left, right);
                 case "/":
                     return Expression.Divide(left, right);
+                case "%":
+                    return Expression.Modulo(left, right);
                 case "==":
                     return Expression.Equal(left, right);
+                case "!=":
+                    return Expression.NotEqual(left, right);
                 case "<=":
                     return Expression.LessThanOrEqual(left, right);
                 case ">=":
@@ -210,7 +214,7 @@ namespace D_Sharp
             {
                 Expression right;
                 string op;
-                while (tokenst.NowIndex < tokenst.Size && (tokenst.Get().Str == "*" || tokenst.Get().Str == "/"))
+                while (tokenst.NowIndex < tokenst.Size && (tokenst.Get().Str == "*" || tokenst.Get().Str == "/" || tokenst.Get().Str=="%"))
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
@@ -481,11 +485,11 @@ namespace D_Sharp
         {
             var checkPoint=tokenst.NowIndex;
             LocalVariableTable.In();
-            if (tokenst.Get().Str=="(")
+            if (argTypes != null && tokenst.Get().Str=="(")
             {
                 tokenst.Next();
                 List<ParameterExpression> argsDecl;
-                if (argTypes!=null&&argTypes.Count() == 1)
+                if (argTypes.Count() == 1)
                     argTypes = DelegateHelper.GetTypesFromDelegate(argTypes[0]);
                 if ((argsDecl = CreateArgsDeclaration(tokenst,argTypes)) != null)
                 {
