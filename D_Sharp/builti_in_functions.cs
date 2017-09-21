@@ -43,6 +43,24 @@ namespace D_Sharp
             return list.ToArray();
         }
 
+        //1番目を取り出し
+        static public T head<T>(T[] t)
+        {
+            return t[0];
+        }
+
+        //最後を取り出し
+        static public T last<T>(T[] t)
+        {
+            return t[t.Count()-1];
+        }
+
+        //二番目以降を取り出し
+        static public T[] tail<T>(T[] t)
+        {
+           return t.Skip(1).ToArray();
+        }
+
         //配列表示
         static public T[] printlist<T>(T[] t)
         {

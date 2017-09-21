@@ -225,7 +225,7 @@ namespace D_Sharp
                 return constant_double;
             }
             //リスト
-            else if ((expr=CreateList(tokenst))!=null)
+            else if ((expr=CreateList(tokenst,argTypes))!=null)
             {
                 return expr;
             }
@@ -278,13 +278,13 @@ namespace D_Sharp
         }
 
         //リスト
-        static Expression CreateList(TokenStream tokenst)
+        static Expression CreateList(TokenStream tokenst,Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
             if (tokenst.Get().Str == "[")
             {
                 tokenst.Next();
-                var array = CreateListNakami(tokenst);
+                var array = CreateListNakami(tokenst,argTypes);
                 if (array != null)
                 {
                     if (tokenst.Get().Str == "]")
@@ -300,12 +300,12 @@ namespace D_Sharp
         }
 
         //リスト中身
-        static Expression CreateListNakami(TokenStream tokenst)
+        static Expression CreateListNakami(TokenStream tokenst,Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
             Expression expr;
             List<Expression> exprList=new List<Expression>();
-            if ((expr = CreateSiki(tokenst)) != null)
+            if ((expr = CreateSiki(tokenst,new[] { argTypes!=null?argTypes[0].GetElementType():null })) != null)
             {
                 var type = expr.Type;
                 exprList.Add(expr);
@@ -348,7 +348,10 @@ namespace D_Sharp
                             MethodInfo methodInfo;
                             MethodInfo makeGeneric;
                             methodInfo = typeof(builti_in_functions).GetMethod(funcName);
-                            if (funcName == "get"||funcName=="getlen"||funcName=="take"|| funcName == "merge"||funcName=="printlist")
+                            if (funcName == "get"||funcName=="getlen"||
+                                funcName=="take"|| funcName == "merge"||
+                                funcName=="printlist" ||funcName=="tail"||
+                                funcName=="head" || funcName=="last")
                             {
                                 makeGeneric = methodInfo.MakeGenericMethod(args[0].Type.GetElementType());
                             }

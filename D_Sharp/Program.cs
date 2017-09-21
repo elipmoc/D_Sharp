@@ -105,14 +105,22 @@ namespace D_Sharp
         static void Main(string[] args)
         {
 
-          
+            string str;
             while (true)
             {
-
-                try
+                str = "";
+                
+                while (true)
                 {
                     Console.Write("!(^^)!　");
-                    var tokenStream = LexicalAnalyzer.Lexicalanalysis(Console.ReadLine());
+                    str += Console.ReadLine();
+                    if (str[str.Count() - 1] == ';')
+                        break;
+                }
+                try
+                {
+                    
+                    var tokenStream = LexicalAnalyzer.Lexicalanalysis(str.Remove(str.Count()-1,1));
                     if (tokenStream == null)
                     {
                         Console.WriteLine("( ;∀;)　token error!!");
