@@ -38,6 +38,10 @@ namespace D_Sharp
                     return Expression.LessThan(left, right);
                 case ">":
                     return Expression.GreaterThan(left, right);
+                case "++":
+                    return Expression.Call(
+                        typeof(builti_in_functions).GetMethod("merge").MakeGenericMethod(left.Type.GetElementType()),
+                        left, right);
             }
             return null;
         }
@@ -115,7 +119,7 @@ namespace D_Sharp
         {
             var checkPoint = tokenst.NowIndex;
             Expression expr;
-            if ((expr = CreateTasizan(tokenst,argTypes)) != null)
+            if ((expr = CreateHitosi(tokenst,argTypes)) != null)
             {
                 if(tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "?")
                 {
@@ -141,20 +145,24 @@ namespace D_Sharp
             return null;
         }
 
-        //足し算
-        static Expression CreateTasizan(TokenStream tokenst, Type[] argTypes)
+        //等しい演算子
+        static Expression CreateHitosi(TokenStream tokenst, Type[] argTypes)
         {
-            var checkPoint=tokenst.NowIndex;
+            var checkPoint = tokenst.NowIndex;
             Expression left;
-            if ((left = CreateHitosi(tokenst,argTypes)) != null)
+            if ((left = CreateTasizan(tokenst,argTypes)) != null)
             {
                 Expression right;
                 string op;
-                while (tokenst.NowIndex < tokenst.Size && (tokenst.Get().Str == "+" || tokenst.Get().Str == "-"))
+                while (tokenst.NowIndex < tokenst.Size &&( 
+                    tokenst.Get().Str == "=="|| tokenst.Get().Str == "<=" ||
+                    tokenst.Get().Str == ">=" || tokenst.Get().Str == "<" ||
+                    tokenst.Get().Str == ">"||tokenst.Get().Str == "!=" 
+                    ))
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateHitosi(tokenst,argTypes)) == null)
+                    if ((right = CreateTasizan(tokenst,argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -168,24 +176,20 @@ namespace D_Sharp
             return null;
         }
 
-        //等しい演算子
-        static Expression CreateHitosi(TokenStream tokenst, Type[] argTypes)
+        //足し算
+        static Expression CreateTasizan(TokenStream tokenst, Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
             Expression left;
-            if ((left = CreateKou(tokenst,argTypes)) != null)
+            if ((left = CreateKou(tokenst, argTypes)) != null)
             {
                 Expression right;
                 string op;
-                while (tokenst.NowIndex < tokenst.Size &&( 
-                    tokenst.Get().Str == "=="|| tokenst.Get().Str == "<=" ||
-                    tokenst.Get().Str == ">=" || tokenst.Get().Str == "<" ||
-                    tokenst.Get().Str == ">"||tokenst.Get().Str == "!=" 
-                    ))
+                while (tokenst.NowIndex < tokenst.Size && (tokenst.Get().Str == "+" || tokenst.Get().Str == "-" || tokenst.Get().Str == "++"))
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateKou(tokenst,argTypes)) == null)
+                    if ((right = CreateKou(tokenst, argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -246,6 +250,11 @@ namespace D_Sharp
                 tokenst.Next();
                 return constant_double;
             }
+            //文字
+            else if ((expr=CreateCharacter(tokenst)) != null)
+            {
+                return expr;
+            }
             //リスト
             else if ((expr=CreateList(tokenst,argTypes))!=null)
             {
@@ -291,6 +300,18 @@ namespace D_Sharp
                 }
             }
             tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //文字
+        static Expression CreateCharacter(TokenStream tokenst)
+        {
+            if (tokenst.Get().TokenType == TokenType.Charcter)
+            {
+                var expr = Expression.Constant(tokenst.Get().Str[1]);
+                tokenst.Next();
+                return expr;
+            }
             return null;
         }
 
@@ -368,7 +389,8 @@ namespace D_Sharp
                             if (funcName == "get"||funcName=="getlen"||
                                 funcName=="take"|| funcName == "merge"||
                                 funcName=="printlist" ||funcName=="tail"||
-                                funcName=="head" || funcName=="last"|| funcName=="drop"||funcName=="insert")
+                                funcName=="head" || funcName=="last"|| funcName=="drop"||funcName=="insert" ||
+                                funcName=="printstr")
                             {
                                 makeGeneric = methodInfo.MakeGenericMethod(args[0].Type.GetElementType());
                             }
@@ -681,6 +703,8 @@ namespace D_Sharp
             return null;
         }
 
+
+
         static Type CreateType(string typeName)
         {
             switch (typeName)
@@ -689,8 +713,12 @@ namespace D_Sharp
                     return typeof(double);
                 case "bool":
                     return typeof(bool);
+                case "char":
+                    return typeof(char);
                 case "void":
                     return typeof(void);
+                case "unit":
+                    return typeof(Unit);
             }
             return null;
         }

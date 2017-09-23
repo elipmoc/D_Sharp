@@ -9,6 +9,7 @@ namespace D_Sharp
     enum TokenType
     {
         Double,
+        Charcter,
         Identifier,
         GlobalVariable,
         symbol

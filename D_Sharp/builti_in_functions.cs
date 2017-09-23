@@ -7,6 +7,10 @@ using System.Linq.Expressions;
 
 namespace D_Sharp
 {
+
+    //voidのようなもの
+    struct Unit { }
+
     //組み込み関数
     static class builti_in_functions
     {
@@ -15,6 +19,11 @@ namespace D_Sharp
         {
             Console.WriteLine("( ﾟДﾟ)　" + t);
             return t;
+        }
+
+        static public Unit tounit<T>(T t)
+        {
+            return new Unit();
         }
 
         //配列添え字アクセス
@@ -85,6 +94,18 @@ namespace D_Sharp
                 str+=item+",";
             }
             str=(str.Length==1?str:str.Remove(str.Length - 1,1))+"]";
+            print(str);
+            return t;
+        }
+
+        //文字列表示
+        static public T[] printstr<T>(T[] t)
+        {
+            string str="";
+            foreach (var item in t)
+            {
+                str += item;
+            }
             print(str);
             return t;
         }
