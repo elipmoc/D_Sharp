@@ -22,7 +22,7 @@ namespace D_Sharp
                 }
 
                 //デバッグ用
-                /*for (int i = 0; i < tokenStream.Size; i++)
+              /*  for (int i = 0; i < tokenStream.Size; i++)
                     tokenStream[i].DebugPrint();*/
 
 

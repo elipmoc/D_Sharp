@@ -255,6 +255,11 @@ namespace D_Sharp
             {
                 return expr;
             }
+            //文字列
+            else if ((expr = CreateString(tokenst)) != null)
+            {
+                return expr;
+            }
             //リスト
             else if ((expr=CreateList(tokenst,argTypes))!=null)
             {
@@ -309,6 +314,24 @@ namespace D_Sharp
             if (tokenst.Get().TokenType == TokenType.Charcter)
             {
                 var expr = Expression.Constant(tokenst.Get().Str[1]);
+                tokenst.Next();
+                return expr;
+            }
+            return null;
+        }
+
+
+        //文字列
+        static Expression CreateString(TokenStream tokenst)
+        {
+            if (tokenst.Get().TokenType == TokenType.String)
+            {
+                string str=tokenst.Get().Str;
+                Expression expr;
+                if (str.Length == 0)
+                    expr = Expression.NewArrayInit(typeof(char), Expression.Constant(""));
+                else
+                    expr = Expression.NewArrayInit(typeof(char), str.Take(str.Length - 1).Skip(1).Select(x => Expression.Constant(x)));
                 tokenst.Next();
                 return expr;
             }

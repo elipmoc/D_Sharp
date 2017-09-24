@@ -9,7 +9,8 @@ namespace D_Sharp
 {
 
     //voidのようなもの
-    struct Unit { }
+    struct Unit {
+    }
 
     //組み込み関数
     static class builti_in_functions

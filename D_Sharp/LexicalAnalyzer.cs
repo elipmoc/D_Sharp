@@ -17,6 +17,7 @@ namespace D_Sharp
             var space = new Regex(@"^[ \t]+");
             var num = new Regex(@"^\d+(\.\d+)?");
             var character = new Regex(@"^(?:').(?:')");
+            var string_ = new Regex("^\"[^\"]*\"");
             var symbol = new Regex(@"^((unit)|(void)|(double)|(bool)|(->)|(::)|(==)|(<=)|(>=)|(!=)|(\+\+)|[<>\[\]:\?\+\-%\*\/{}\(\)=,])");
             var Identifier = new Regex(@"^[a-z]+");
             var GlobalVariable = new Regex(@"^g_[a-z]+");
@@ -29,6 +30,8 @@ namespace D_Sharp
                     tokenlist.Add(new Token(match.Value, TokenType.Double));
                 else if ((match = character.Match(str)).Success)
                     tokenlist.Add(new Token(match.Value, TokenType.Charcter));
+                else if ((match = string_.Match(str)).Success)
+                    tokenlist.Add(new Token(match.Value, TokenType.String));
                 else if ((match = symbol.Match(str)).Success)
                     tokenlist.Add(new Token(match.Value, TokenType.symbol));
                 else if ((match = GlobalVariable.Match(str)).Success)

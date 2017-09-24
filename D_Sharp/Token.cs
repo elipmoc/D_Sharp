@@ -10,6 +10,7 @@ namespace D_Sharp
     {
         Double,
         Charcter,
+        String,
         Identifier,
         GlobalVariable,
         symbol
