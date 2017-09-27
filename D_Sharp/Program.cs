@@ -115,6 +115,13 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+            Console.BackgroundColor = ConsoleColor.Black;
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.InputEncoding = Encoding.Unicode;
+            Console.OutputEncoding =Encoding.Unicode;
+
+            Console.Clear();
 
             //ファイルからプログラム読み込み
             StreamReader sr =

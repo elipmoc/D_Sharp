@@ -409,6 +409,11 @@ namespace D_Sharp
                             MethodInfo methodInfo;
                             MethodInfo makeGeneric;
                             methodInfo = typeof(builti_in_functions).GetMethod(funcName);
+                            if (methodInfo == null)
+                            {
+                                tokenst.Rollback(checkPoint);
+                                return null;
+                            }
                             if (funcName == "get"||funcName=="getlen"||
                                 funcName=="take"|| funcName == "merge"||
                                 funcName=="printlist" ||funcName=="tail"||

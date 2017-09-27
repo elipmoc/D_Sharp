@@ -27,6 +27,12 @@ namespace D_Sharp
             return new Unit();
         }
 
+        static public char[] tostring<T>(T t)
+        {
+            
+            return t.ToString().ToArray();
+        }
+
         //配列添え字アクセス
         static public T get<T>(T[] t,double index)
         {
