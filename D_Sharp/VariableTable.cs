@@ -69,6 +69,7 @@ namespace D_Sharp
         }
     }
 
+    //ローカル変数のテーブル
     static class LocalVariableTable
     {
         static int nest = -1;
@@ -88,9 +89,12 @@ namespace D_Sharp
 
         static public ParameterExpression Find(string name)
         {
-            if (nest < 0) return null;
-            if (table[nest].ContainsKey(name) == false) return null;
-            return table[nest][name];
+            for(int i = nest; i > -1; i--)
+            {
+                if (table[i].ContainsKey(name) == true)
+                    return table[i][name];
+            }
+            return null;
         }
 
         static public void Register(string name, ParameterExpression parameter)

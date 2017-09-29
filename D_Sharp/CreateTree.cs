@@ -491,7 +491,8 @@ namespace D_Sharp
                         //ローカル変数のラムダ
                         else if ((lambdadef = CreateLocalVariableExpr(tokenst)) != null)
                         {
-                        }*/
+                        }
+            */
             if ((expr = CreateInsi(tokenst, argTypes)) != null){
                 
             }
@@ -568,6 +569,8 @@ namespace D_Sharp
         //引数宣言
         static List<ParameterExpression> CreateArgsDeclaration(TokenStream tokenst,Type[] argTypes)
         {
+            if (argTypes == null)
+                return null;
             var checkPoint = tokenst.NowIndex;
 
             //引数のインデックス
