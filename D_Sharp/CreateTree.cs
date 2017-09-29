@@ -70,7 +70,7 @@ namespace D_Sharp
                }*/
             types = CreateTypeSpecifier3(tokenst);
             string variableName;
-            if (tokenst.Get().TokenType == TokenType.GlobalVariable)
+            if (tokenst.Get().TokenType == TokenType.Identifier)
             {
                 variableName = tokenst.Get().Str;
                 if (VariableTable.Find(variableName) == false && types != null)
@@ -272,7 +272,7 @@ namespace D_Sharp
             }
             //グローバル変数
             else if (
-                tokenst.Get().TokenType==TokenType.GlobalVariable &&
+                tokenst.Get().TokenType==TokenType.Identifier &&
                 VariableTable.Find(tokenst.Get().Str)!=false)
                 
             {
