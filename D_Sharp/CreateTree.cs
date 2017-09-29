@@ -347,6 +347,11 @@ namespace D_Sharp
             {
                 return expr;
             }
+            //ローカル変数
+            else if ((expr = CreateLocalVariableExpr(tokenst)) != null)
+            {
+                return expr;
+            }
             //グローバル変数
             else if (
                 tokenst.Get().TokenType==TokenType.Identifier &&
@@ -357,10 +362,6 @@ namespace D_Sharp
                 var methodInfo = typeof(VariableTable).GetMethod("Get").MakeGenericMethod(type);
                 expr = Expression.Call(methodInfo,Expression.Constant(tokenst.Get().Str));
                 tokenst.Next();
-                return expr;
-            }
-            //ローカル変数
-            else if ((expr=CreateLocalVariableExpr(tokenst))!=null) {
                 return expr;
             }
             //ラムダ定義
