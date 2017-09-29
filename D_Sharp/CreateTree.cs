@@ -51,23 +51,18 @@ namespace D_Sharp
         {
             var body = CreateSiki(tokenst);
             if (body == null)
-                if((body=CreateVariableDeclaration(tokenst))==null)
+                if((body=CreateGlobalVariableDecl(tokenst))==null)
                     return null;
             if (tokenst.NowIndex < tokenst.Size)
                 return null;
             return Expression.Lambda<Action>(body).Compile();
         }
 
-        //グローバル変数宣言の解析
-        static Expression CreateVariableDeclaration(TokenStream tokenst)
+        //グローバル変数宣言
+        static Expression CreateGlobalVariableDecl(TokenStream tokenst)
         {
             var checkPoint = tokenst.NowIndex;
             Type[] types;
-            /*   if ((types = CreateTypeSpecifier3(tokenst)) == null)
-               {
-                   tokenst.Rollback(checkPoint);
-                   return null;
-               }*/
             types = CreateTypeSpecifier3(tokenst);
             string variableName;
             if (tokenst.Get().TokenType == TokenType.Identifier)
@@ -105,12 +100,94 @@ namespace D_Sharp
             return null;
         }
 
+        //ローカル変数宣言
+        static Expression CreateLocalVariableDecl(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            Type[] types;
+            types = CreateTypeSpecifier3(tokenst);
+            string variableName;
+            if (tokenst.Get().TokenType == TokenType.Identifier)
+            {
+                variableName = tokenst.Get().Str;
+                if (LocalVariableTable.FindNowNest(variableName) == null && types != null)
+                {
+                    if (types.Count() == 1)
+                        LocalVariableTable.Register(variableName, Expression.Parameter(types[0]));
+                    else if (types[0] == typeof(void))
+                        LocalVariableTable.Register(variableName, Expression.Parameter(Expression.GetDelegateType(types.Skip<Type>(1).ToArray())));
+                    else
+                        LocalVariableTable.Register(variableName, Expression.Parameter(Expression.GetDelegateType(types)));
+                }
+                tokenst.Next();
+                if (tokenst.Get().Str == "=")
+                {
+                    tokenst.Next();
+                    var expr = CreateSiki(tokenst, types);
+                    if (expr != null)
+                    {
+                        if (LocalVariableTable.FindNowNest(variableName) == null && types == null)
+                        {
+                            LocalVariableTable.Register(variableName, Expression.Parameter(expr.Type));
+                        }
+                        Expression param= LocalVariableTable.FindNowNest(variableName);
+                        return Expression.Assign(param, expr);
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
         //式
         static Expression CreateSiki(TokenStream tokenst, Type[] argTypes=null)
         {
             Expression expr;
-            if ((expr = CreateJyoukenEnzan(tokenst,argTypes)) != null)
+            if ((expr = CreateLetIn(tokenst,argTypes)) != null)
                 return expr;
+            return null;
+        }
+
+        //let in
+        static Expression CreateLetIn(TokenStream tokenst,Type[] argTypes)
+        {
+            var checkPoint = tokenst.NowIndex;
+            List<Expression> exprList=new List<Expression>();
+            Expression expr;
+            if (tokenst.Get().Str == "let") {
+                LocalVariableTable.In();
+                tokenst.Next();
+                if ((expr=CreateLocalVariableDecl(tokenst)) != null)
+                {
+                    exprList.Add(expr);
+                    while (tokenst.Get().Str == ",")
+                    {
+                        tokenst.Next();
+                        if ((expr = CreateLocalVariableDecl(tokenst)) != null)
+                            exprList.Add(expr);
+                        else
+                        {
+                            tokenst.Rollback(checkPoint);
+                            return null;
+                        }
+
+                    }
+                    if (tokenst.Get().Str == "in")
+                    {
+                        tokenst.Next();
+                        if ((expr = CreateSiki(tokenst,argTypes)) != null)
+                        {
+                            exprList.Add(expr);
+                            expr=Expression.Block(LocalVariableTable.GetNowNestParamList(), exprList);
+                            LocalVariableTable.Out();
+                            return expr;
+                        }
+                    }
+                }
+            }
+            else if((expr=CreateJyoukenEnzan(tokenst,argTypes))!=null){ return expr; }
+
+            tokenst.Rollback(checkPoint);
             return null;
         }
 
@@ -125,12 +202,12 @@ namespace D_Sharp
                 {
                     Expression left, right;
                     tokenst.Next();
-                    if ((left = CreateJyoukenEnzan(tokenst,argTypes)) != null)
+                    if ((left = CreateSiki(tokenst,argTypes)) != null)
                     {
                         if (tokenst.Get().Str == ":")
                         {
                             tokenst.Next();
-                            if ((right = CreateJyoukenEnzan(tokenst,argTypes)) != null)
+                            if ((right = CreateSiki(tokenst,argTypes)) != null)
                             {
                                 return Expression.Condition(expr, left, right);
                             }

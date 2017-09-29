@@ -97,6 +97,18 @@ namespace D_Sharp
             return null;
         }
 
+        static public ParameterExpression FindNowNest(string name)
+        {
+            if (table[nest].ContainsKey(name) == true)
+                return table[nest][name];
+            return null;
+        }
+
+        static public ParameterExpression[] GetNowNestParamList()
+        {
+                return table[nest].Values.ToArray();
+        }
+
         static public void Register(string name, ParameterExpression parameter)
         {
             table[nest][name] = parameter;
