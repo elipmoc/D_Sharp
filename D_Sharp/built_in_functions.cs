@@ -13,8 +13,18 @@ namespace D_Sharp
     }
 
     //組み込み関数
-    static class builti_in_functions
+    static class built_in_functions
     {
+
+        static public char[] scanf()
+        {
+           return Console.ReadLine().ToArray();
+        }
+
+        static public double random()
+        {
+            return new System.Random().NextDouble();
+        }
 
         static public T print<T>(T t)
         {

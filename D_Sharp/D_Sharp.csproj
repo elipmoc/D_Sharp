@@ -43,7 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="builti_in_functions.cs" />
+    <Compile Include="built_in_functions.cs" />
     <Compile Include="CreateTree.cs" />
     <Compile Include="Interpreter.cs" />
     <Compile Include="LexicalAnalyzer.cs" />

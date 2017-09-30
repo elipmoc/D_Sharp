@@ -40,7 +40,7 @@ namespace D_Sharp
                     return Expression.GreaterThan(left, right);
                 case "++":
                     return Expression.Call(
-                        typeof(builti_in_functions).GetMethod("merge").MakeGenericMethod(left.Type.GetElementType()),
+                        typeof(built_in_functions).GetMethod("merge").MakeGenericMethod(left.Type.GetElementType()),
                         left, right);
             }
             return null;
@@ -486,7 +486,7 @@ namespace D_Sharp
                         {
                             MethodInfo methodInfo;
                             MethodInfo makeGeneric;
-                            methodInfo = typeof(builti_in_functions).GetMethod(funcName);
+                            methodInfo = typeof(built_in_functions).GetMethod(funcName);
                             if (methodInfo == null)
                             {
                                 tokenst.Rollback(checkPoint);
@@ -502,7 +502,10 @@ namespace D_Sharp
                             }
                             else
                             {
-                                makeGeneric = methodInfo.MakeGenericMethod(args.Select(x => x.Type).ToArray());
+                                if(methodInfo.IsGenericMethod==true)
+                                    makeGeneric = methodInfo.MakeGenericMethod(args.Select(x => x.Type).ToArray());
+                                else
+                                    makeGeneric = methodInfo;
                             }
                             if (makeGeneric != null)
                             {
