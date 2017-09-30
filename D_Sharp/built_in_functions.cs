@@ -32,6 +32,12 @@ namespace D_Sharp
             return t;
         }
 
+        static public T printtype<T>(T t)
+        {
+            print(typeof(T));
+            return t;
+        }
+
         static public Unit tounit<T>(T t)
         {
             return new Unit();
@@ -44,27 +50,27 @@ namespace D_Sharp
         }
 
         //配列添え字アクセス
-        static public T get<T>(T[] t,double index)
+        static public T get<T>(T[] t,int index)
         {
-            return t[(int)index];
+            return t[index];
         }
 
         //配列要素数ゲット
-        static public double getlen<T>(T[] t)
+        static public int getlen<T>(T[] t)
         {
             return t.Count();
         }
 
         //配列取り出し
-        static public T[] take<T>(T[] t,double range)
+        static public T[] take<T>(T[] t,int range)
         {
-            return t.Take((int)range).ToArray();
+            return t.Take(range).ToArray();
         }
 
         //配列を先頭からｎ個取り出す
-        static public T[] drop<T>(T[] t, double range)
+        static public T[] drop<T>(T[] t, int range)
         {
-            return t.Skip((int)range).ToArray();
+            return t.Skip(range).ToArray();
         }
 
         //配列結合
@@ -94,11 +100,11 @@ namespace D_Sharp
         }
 
         //配列に配列を挿入
-        static public T[] insert<T>(T[] a, T[] b,double index)
+        static public T[] insert<T>(T[] a, T[] b,int index)
         {
-            var list = b.Take((int)index).ToList();
+            var list = b.Take(index).ToList();
             list.AddRange(a);
-            list.AddRange(b.Skip((int)index));
+            list.AddRange(b.Skip(index));
             return list.ToArray();
         }
 

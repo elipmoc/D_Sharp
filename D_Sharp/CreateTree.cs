@@ -68,30 +68,34 @@ namespace D_Sharp
             if (tokenst.Get().TokenType == TokenType.Identifier)
             {
                 variableName = tokenst.Get().Str;
-                if (VariableTable.Find(variableName) == false && types != null)
+                if (VariableTable.Find(variableName) == false)
                 {
-                    if (types.Count() == 1)
-                        VariableTable.Register(variableName, types[0]);
-                    else if (types[0] == typeof(void))
-                        VariableTable.Register(variableName, Expression.GetDelegateType(types.Skip<Type>(1).ToArray()));
-                    else
-                        VariableTable.Register(variableName, Expression.GetDelegateType(types));
-                }
-                tokenst.Next();
-                if (tokenst.Get().Str == "=")
-                {
-                    tokenst.Next();
-                    var expr = CreateSiki(tokenst, types);
-                    if (expr != null)
+                    if (types != null)
                     {
-                        if (VariableTable.Find(variableName) == false && types == null)
-                        {
-                            VariableTable.Register(variableName, expr.Type);
-                        }
-                        var methodInfo = typeof(VariableTable).GetMethod("SetValue").MakeGenericMethod(expr.Type);
-                        return Expression.Call(methodInfo, Expression.Constant(variableName), expr);
+                        if (types.Count() == 1)
+                            VariableTable.Register(variableName, types[0]);
+                        else if (types[0] == typeof(void))
+                            VariableTable.Register(variableName, Expression.GetDelegateType(types.Skip<Type>(1).ToArray()));
+                        else
+                            VariableTable.Register(variableName, Expression.GetDelegateType(types));
                     }
 
+                    tokenst.Next();
+                    if (tokenst.Get().Str == "=")
+                    {
+                        tokenst.Next();
+                        var expr = CreateSiki(tokenst, types);
+                        if (expr != null)
+                        {
+                            if (VariableTable.Find(variableName) == false && types == null)
+                            {
+                                VariableTable.Register(variableName, expr.Type);
+                            }
+                            var methodInfo = typeof(VariableTable).GetMethod("SetValue").MakeGenericMethod(expr.Type);
+                            return Expression.Call(methodInfo, Expression.Constant(variableName), expr);
+                        }
+
+                    }
                 }
                 VariableTable.Remove(variableName);
 
@@ -320,12 +324,19 @@ namespace D_Sharp
         {
             var checkPoint = tokenst.NowIndex;
             Expression expr;
-            //実数
-            if (tokenst.Get().TokenType == TokenType.Double)
+            //整数
+            if (tokenst.Get().TokenType == TokenType.Int)
             {
-                var constant_double = Expression.Constant(tokenst.Get().GetDouble());
+                expr = Expression.Constant(tokenst.Get().GetInt());
                 tokenst.Next();
-                return constant_double;
+                return expr;
+            }
+            //実数
+            else if (tokenst.Get().TokenType == TokenType.Double)
+            {
+                expr = Expression.Constant(tokenst.Get().GetDouble());
+                tokenst.Next();
+                return expr;
             }
             //文字
             else if ((expr=CreateCharacter(tokenst)) != null)
@@ -821,6 +832,8 @@ namespace D_Sharp
         {
             switch (typeName)
             {
+                case "int":
+                    return typeof(int);
                 case"double":
                     return typeof(double);
                 case "bool":

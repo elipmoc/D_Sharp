@@ -15,10 +15,11 @@ namespace D_Sharp
             var tokenlist = new List<Token>();
             var comment = new Regex(@"\/\*[^(\*\/)]*\*\/");
             var space = new Regex(@"^[ \t]+");
-            var num = new Regex(@"^\d+(\.\d+)?");
+            var num_double = new Regex(@"^\d+\.\d+");
+            var num_int = new Regex(@"^\d+");
             var character = new Regex(@"^(?:').(?:')");
             var string_ = new Regex("^\"[^\"]*\"");
-            var symbol = new Regex(@"^((in)|(let)|(unit)|(void)|(double)|(bool)|(->)|(::)|(==)|(<=)|(>=)|(!=)|(\+\+)|[<>\[\]:\?\+\-%\*\/{}\(\)=,])");
+            var symbol = new Regex(@"^((int)|(in)|(let)|(unit)|(void)|(double)|(bool)|(->)|(::)|(==)|(<=)|(>=)|(!=)|(\+\+)|[<>\[\]:\?\+\-%\*\/{}\(\)=,])");
             var Identifier = new Regex(@"^([a-z]|[A-Z]|[0-9]|_)+");
 //            var GlobalVariable = new Regex(@"^g_[a-z]+");
             Match match;
@@ -26,8 +27,10 @@ namespace D_Sharp
             {
                 if ((match = space.Match(str)).Success) ;
                 else if ((match = comment.Match(str)).Success) ;
-                else if ((match = num.Match(str)).Success)
+                else if ((match = num_double.Match(str)).Success)
                     tokenlist.Add(new Token(match.Value, TokenType.Double));
+                else if ((match = num_int.Match(str)).Success)
+                    tokenlist.Add(new Token(match.Value, TokenType.Int));
                 else if ((match = character.Match(str)).Success)
                     tokenlist.Add(new Token(match.Value, TokenType.Charcter));
                 else if ((match = string_.Match(str)).Success)

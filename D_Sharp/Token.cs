@@ -9,6 +9,7 @@ namespace D_Sharp
     enum TokenType
     {
         Double,
+        Int,
         Charcter,
         String,
         Identifier,
@@ -37,6 +38,13 @@ namespace D_Sharp
             if (tokenType != TokenType.Double)
                 throw new Exception("ばーか");
             return double.Parse(str);
+        }
+
+        public int GetInt()
+        {
+            if (tokenType != TokenType.Int)
+                throw new Exception("ばーか");
+            return int.Parse(str);
         }
 
         public void DebugPrint()
