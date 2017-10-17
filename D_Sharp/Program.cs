@@ -8,6 +8,12 @@ using System.IO;
 
 namespace D_Sharp
 {
+
+    class Hoge
+    {
+
+        public static int a() { return 1; }
+    }
     class Program
     {
         //拡張BNF記法
@@ -18,7 +24,7 @@ namespace D_Sharp
 
         /*
         文
-            : 式 || 変数宣言
+            : 式 | 変数宣言
             ;
 
         変数宣言
@@ -26,11 +32,15 @@ namespace D_Sharp
             ;
 
         式
-            :let_in
+            :キャスト
+            ;
+
+        キャスト
+            : ( "(" , 型種類 , ")", キャスト )| let_in
             ;
 
         let_in
-            :("let" , 変数宣言,{ "," , 変数宣言}, "in" ,式) || 条件演算子
+            :("let" , 変数宣言,{ "," , 変数宣言}, "in" ,式) | 条件演算子
             ;
 
         条件演算子　
@@ -38,15 +48,15 @@ namespace D_Sharp
             ;
 
         等しい演算子
-            :足し算 , {( "==" || "<=" || ">=" || "<" || ">" || "!=" ),足し算}
+            :足し算 , {( "==" | "<=" | ">=" | "<" | ">" | "!=" ),足し算}
             ;
 
         足し算
-            : 項 , { "+" || "-" , 項 }
+            : 項 , { "+" | "-" , 項 }
             ;
-
+            
         項
-            :[-] ,　ラムダ呼び出し { "*" || "/", ラムダ呼び出し }
+            :[-] ,　ラムダ呼び出し { "*" | "/", ラムダ呼び出し }
             ;
 
         ラムダ呼び出し
@@ -54,7 +64,9 @@ namespace D_Sharp
             ;
 
         因子
-            : 整数|| 実数 ||文字 || 文字列 || リスト || 組み込み関数呼び出し || グローバル変数||　ローカル変数 || ラムダ定義 ||( "(" , 式 , ")" )
+            : 整数| 実数 |文字 | 文字列 |
+              リスト | Netクラス静的メソッド呼び出し | 組み込み関数呼び出し | 
+              グローバル変数|　ローカル変数 | ラムダ定義 | ( "(" , 式 , ")" )
             ;
 
         文字
@@ -65,13 +77,16 @@ namespace D_Sharp
             : " " ", 任意の文字列 , " " "
             ;
 
-        
         リスト
             : "[" , リスト中身 ,"]"
             ;
         
         リスト中身
             : 式 , { "," , 式}
+            ;
+
+        Netクラス静的メソッド呼び出し
+            :クラス名 , "." , 識別子 , "(",引数,")"
             ;
 
 
@@ -83,12 +98,12 @@ namespace D_Sharp
             :識別子,"(",引数,")"
             ;
        
-        グローバル変数
-            :"g_",識別子
+        グローバル変数 とローカル変数
+            :識別子
             ;
 
         識別子
-            :(a-z)+
+            :("a"-"z")+ | ("A"-"Z")+ | ("0"-"9")+ | "_"
             ;
 
         引数
@@ -112,15 +127,18 @@ namespace D_Sharp
             ;
 
         型種類
-            :"double" | "void"|"bool"|"char"|"int"|"unit"
+            :"double" | "void" | "bool" | "char" | "int" | "unit"
             ;
-               
+
+        クラス名
+            :識別子 , { "@" , 識別子}
+            ;
+            
         */
 
         static void Main(string[] args)
         {
             Console.BackgroundColor = ConsoleColor.Black;
-
             Console.ForegroundColor = ConsoleColor.Green;
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding =Encoding.Unicode;

@@ -15,7 +15,6 @@ namespace D_Sharp
     //組み込み関数
     static class built_in_functions
     {
-
         static public char[] scanf()
         {
            return Console.ReadLine().ToArray();

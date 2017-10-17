@@ -147,9 +147,35 @@ namespace D_Sharp
         static Expression CreateSiki(TokenStream tokenst, Type[] argTypes=null)
         {
             Expression expr;
-            if ((expr = CreateLetIn(tokenst,argTypes)) != null)
+            if ((expr = CreateCast(tokenst,argTypes)) != null)
                 return expr;
             return null;
+        }
+
+        //キャスト
+        static Expression CreateCast(TokenStream tokenst, Type[] argTypes)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().Str == "(")
+            {
+                tokenst.Next();
+                Type type;
+                if ((type = CreateType(tokenst.Get().Str)) != null)
+                {
+                    tokenst.Next();
+                    if (tokenst.Get().Str == ")")
+                    {
+                        tokenst.Next();
+                        Expression expr;
+                        if ((expr = CreateCast(tokenst, null)) != null)
+                        {
+                            return Expression.Convert(expr, type);
+                        }
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return CreateLetIn(tokenst, argTypes);
         }
 
         //let in
@@ -353,6 +379,11 @@ namespace D_Sharp
             {
                 return expr;
             }
+            //Netクラスの静的メソッド呼び出し
+            else if ((expr = CreateNetClassStaticFunctionCall(tokenst)) != null)
+            {
+                return expr;
+            }
             //組み込み関数呼び出し
             else if ((expr = CreateFunctionCall(tokenst)) != null)
             {
@@ -474,6 +505,44 @@ namespace D_Sharp
 
                 }
                 return Expression.NewArrayInit(type, exprList.ToArray());
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //Netクラスの静的メソッド呼び出し
+        static Expression CreateNetClassStaticFunctionCall(TokenStream tokenst)
+        { 
+            var checkPoint=tokenst.NowIndex;
+            var type = CreateNetClassType(tokenst);
+            if (type != null)
+            {
+                if (tokenst.Get().Str == ".")
+                {
+                    tokenst.Next();
+                    if (tokenst.Get().TokenType == TokenType.Identifier)
+                    {
+                        var funcName = tokenst.Get().Str;
+                        tokenst.Next();
+                        if (tokenst.Get().Str == "(")
+                        {
+                            tokenst.Next();
+                            List<Expression> args;
+                            if ((args = CreateArgs(tokenst, null)) != null)
+                            {
+                                if (tokenst.Get().Str == ")")
+                                {
+                                    var methodInfo=type.GetMethod(funcName,args.Select(arg=>arg.Type).ToArray());
+                                    if (methodInfo != null)
+                                    {
+                                        tokenst.Next();
+                                        return Expression.Call(methodInfo, args);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             tokenst.Rollback(checkPoint);
             return null;
@@ -845,6 +914,32 @@ namespace D_Sharp
                 case "unit":
                     return typeof(Unit);
             }
+            return null;
+        }
+
+        //クラス名
+        static Type CreateNetClassType(TokenStream tokenst) {
+            var checkPoint = tokenst.NowIndex;
+            string className="";
+            if (tokenst.Get().TokenType == TokenType.Identifier)
+            {
+                className = tokenst.Get().Str;
+                tokenst.Next();
+                while (tokenst.Get().Str =="@" )
+                {
+                    tokenst.Next();
+                    if (tokenst.Get().TokenType != TokenType.Identifier)
+                    {
+                        tokenst.Rollback(checkPoint);
+                        return null;
+                    }
+                        
+                    className +="."+ tokenst.Get().Str;
+                    tokenst.Next();
+                }
+                return Type.GetType(className);
+            }
+            tokenst.Rollback(checkPoint);
             return null;
         }
 
