@@ -167,6 +167,7 @@ public class MyBinder : Binder
     // Determines whether type1 can be converted to type2. Check only for primitive types.
     private bool CanConvertFrom(Type type1, Type type2)
     {
+
         if (type1.IsPrimitive && type2.IsPrimitive)
         {
             TypeCode typeCode1 = Type.GetTypeCode(type1);
@@ -278,6 +279,8 @@ public class MyBinder : Binder
                     default: return false;
                 }
         }
+        if (type2 == typeof(object))
+            return true;
         return false;
     }
 }
