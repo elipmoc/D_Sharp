@@ -17,11 +17,14 @@ namespace D_Sharp
     {
         static public char[] scanf()
         {
+
            return Console.ReadLine().ToArray();
         }
 
         static public double random()
         {
+   
+
             return new System.Random().NextDouble();
         }
 
@@ -46,6 +49,12 @@ namespace D_Sharp
         {
             
             return t.ToString().ToArray();
+        }
+
+        //配列添え字アクセス
+        static public string arrayToString<T>(char[] t)
+        {
+            return new string(t);
         }
 
         //配列添え字アクセス

@@ -483,6 +483,7 @@ namespace D_Sharp
         //リスト中身
         static Expression CreateListNakami(TokenStream tokenst,Type[] argTypes)
         {
+
             var checkPoint = tokenst.NowIndex;
             Expression expr;
             List<Expression> exprList=new List<Expression>();
@@ -532,11 +533,12 @@ namespace D_Sharp
                             {
                                 if (tokenst.Get().Str == ")")
                                 {
-                                    var methodInfo=type.GetMethod(funcName,args.Select(arg=>arg.Type).ToArray());
+                                    var methodInfo=type.GetMethod(funcName,BindingFlags.Public|BindingFlags.Static,new MyBinder(), args.Select(arg=>arg.Type).ToArray(),null);
                                     if (methodInfo != null)
                                     {
+                                       var paramT= methodInfo.GetParameters().Select(param=>param.ParameterType).ToArray();
                                         tokenst.Next();
-                                        return Expression.Call(methodInfo, args);
+                                        return Expression.Call(methodInfo, args.Select((arg,i)=>Expression.Convert(arg,paramT[i])));
                                     }
                                 }
                             }
@@ -572,7 +574,7 @@ namespace D_Sharp
                                 tokenst.Rollback(checkPoint);
                                 return null;
                             }
-                            if (funcName == "get"||funcName=="getlen"||
+                            if (funcName == "get"||funcName=="getlen"||funcName=="arrayToString"||
                                 funcName=="take"|| funcName == "merge"||
                                 funcName=="printlist" ||funcName=="tail"||
                                 funcName=="head" || funcName=="last"|| funcName=="drop"||funcName=="insert" ||

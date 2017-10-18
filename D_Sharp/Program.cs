@@ -138,6 +138,7 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.InputEncoding = Encoding.Unicode;
@@ -181,9 +182,9 @@ namespace D_Sharp
                         break;
                 }
                 Interpreter.ReadLine(str);
-               
 
-               
+
+
             }
         }
     }
