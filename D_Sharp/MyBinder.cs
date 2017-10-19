@@ -281,6 +281,8 @@ public class MyBinder : Binder
         }
         if (type2 == typeof(object))
             return true;
+        if (type1==type2)
+            return true;
         return false;
     }
 }

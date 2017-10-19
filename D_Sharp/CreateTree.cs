@@ -321,7 +321,7 @@ namespace D_Sharp
                 tokenst.Next();
                 signedFlag = true;
             }
-            if ((left = CreateLambdaCall(tokenst,argTypes)) != null)
+            if ((left = CreateMemberMethodCall(tokenst,argTypes)) != null)
             {
                 Expression right;
                 string op;
@@ -329,7 +329,7 @@ namespace D_Sharp
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateLambdaCall(tokenst,argTypes)) == null)
+                    if ((right = CreateMemberMethodCall(tokenst,argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -386,6 +386,11 @@ namespace D_Sharp
             }
             //組み込み関数呼び出し
             else if ((expr = CreateFunctionCall(tokenst)) != null)
+            {
+                return expr;
+            }
+            //Netクラスの静的プロパティ呼び出し
+            else if ((expr = CreateNetClassStaticProperty(tokenst)) != null)
             {
                 return expr;
             }
@@ -525,7 +530,7 @@ namespace D_Sharp
                     {
                         var funcName = tokenst.Get().Str;
                         tokenst.Next();
-                        if (tokenst.Get().Str == "(")
+                        if (tokenst.NowIndex< tokenst.Size-1 && tokenst.Get().Str == "(")
                         {
                             tokenst.Next();
                             List<Expression> args;
@@ -602,6 +607,30 @@ namespace D_Sharp
             return null;
         }
 
+        //Netクラスの静的プロパティ呼び出し
+        static Expression CreateNetClassStaticProperty(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            var type = CreateNetClassType(tokenst);
+            if (type != null)
+            {
+                if (tokenst.Get().Str == ".")
+                {
+                    tokenst.Next();
+                    if (tokenst.Get().TokenType == TokenType.Identifier)
+                    {
+                        var propertyName = tokenst.Get().Str;
+                        tokenst.Next();
+                        var fieldInfo = type.GetField(propertyName, BindingFlags.Public | BindingFlags.Static);
+                        if (fieldInfo != null)
+                            return Expression.Field(null,fieldInfo);
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
         //引数
         static List<Expression> CreateArgs(TokenStream tokenst,Type[] argTypes)
         {
@@ -630,32 +659,68 @@ namespace D_Sharp
                 return new List<Expression>();
         }
 
+        //メンバメソッド呼び出し
+        static Expression CreateMemberMethodCall(TokenStream tokenst,Type[] argTypes)
+        {
+            var checkPoint = tokenst.NowIndex;
+
+
+            Expression expr;
+
+            if ((expr = CreateLambdaCall(tokenst, argTypes)) != null){}
+            else
+            {
+                tokenst.Rollback(checkPoint);
+                return null;
+            }
+
+            List<Expression> args;
+
+            //引数確認
+            while (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ".")
+            {
+                tokenst.Next();
+                string methodName;
+                if (tokenst.Get().TokenType == TokenType.Identifier)
+                {
+                    methodName = tokenst.Get().Str;
+                    tokenst.Next();
+                    if (tokenst.Get().Str == "(")
+                    {
+                        tokenst.Next();
+                        if ((args = CreateArgs(tokenst, DelegateHelper.GetTypesFromDelegate(expr.Type))) != null)
+                        {
+                            if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ")")
+                            {
+                                tokenst.Next();
+                                var methodInfo=expr.Type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance, new MyBinder(), args.Select(arg => arg.Type).ToArray(), null);
+                                var paramT = methodInfo.GetParameters().Select(param => param.ParameterType).ToArray();
+                                expr = Expression.Call(expr,methodInfo , args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
+                            }
+                            else
+                            {
+                                tokenst.Rollback(checkPoint);
+                                return null;
+                            }
+                        }
+                        else
+                        {
+                            tokenst.Rollback(checkPoint);
+                            return null;
+                        }
+                    }
+                }
+            }
+            return expr;
+        }
         //ラムダ呼び出し
         static Expression CreateLambdaCall(TokenStream tokenst,Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
 
-            //直接書かれたラムダ
-            /*   var lambdadef = CreateLambdaDefinition(tokenst,argTypes);
-               if (lambdadef != null) ;*/
 
             Expression expr;
 
-            /*
-                        //グローバル変数のラムダ
-                        if (tokenst.Get().TokenType == TokenType.GlobalVariable &&
-                              (VariableTable.Find(tokenst.Get().Str)) ==true)
-                        {
-                            var type = VariableTable.GetType(tokenst.Get().Str);
-                            var methodInfo = typeof(VariableTable).GetMethod("Get").MakeGenericMethod(type);
-                            lambdadef = Expression.Call(methodInfo,Expression.Constant( tokenst.Get().Str));
-                            tokenst.Next();
-                        }
-                        //ローカル変数のラムダ
-                        else if ((lambdadef = CreateLocalVariableExpr(tokenst)) != null)
-                        {
-                        }
-            */
             if ((expr = CreateInsi(tokenst, argTypes)) != null){
                 
             }
@@ -935,7 +1000,6 @@ namespace D_Sharp
                         tokenst.Rollback(checkPoint);
                         return null;
                     }
-                        
                     className +="."+ tokenst.Get().Str;
                     tokenst.Next();
                 }

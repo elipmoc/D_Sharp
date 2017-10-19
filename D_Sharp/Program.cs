@@ -56,7 +56,11 @@ namespace D_Sharp
             ;
             
         項
-            :[-] ,　ラムダ呼び出し { "*" | "/", ラムダ呼び出し }
+            :[-] ,　メンバメソッド呼び出し { "*" | "/", メンバメソッド呼び出し }
+            ;
+
+        メンバメソッド呼び出し
+            :ラムダ呼び出し ,{ "." , 識別子 , "(",引数,")"}
             ;
 
         ラムダ呼び出し
@@ -65,9 +69,11 @@ namespace D_Sharp
 
         因子
             : 整数| 実数 |文字 | 文字列 |
-              リスト | Netクラス静的メソッド呼び出し | 組み込み関数呼び出し | 
+              リスト | Netクラス静的メソッド呼び出し | 組み込み関数呼び出し |Netクラス静的プロパティ呼び出し |
               グローバル変数|　ローカル変数 | ラムダ定義 | ( "(" , 式 , ")" )
             ;
+        
+
 
         文字
             : "'" , 任意の一文字 , "'"
@@ -87,6 +93,10 @@ namespace D_Sharp
 
         Netクラス静的メソッド呼び出し
             :クラス名 , "." , 識別子 , "(",引数,")"
+            ;
+        
+        Netクラス静的プロパティ呼び出し
+            :クラス名 , "." , 識別子
             ;
 
 
@@ -138,7 +148,6 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
-
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.InputEncoding = Encoding.Unicode;
