@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,6 +46,7 @@
   <ItemGroup>
     <Compile Include="built_in_functions.cs" />
     <Compile Include="CreateTree.cs" />
+    <Compile Include="ImportTable.cs" />
     <Compile Include="Interpreter.cs" />
     <Compile Include="LexicalAnalyzer.cs" />
     <Compile Include="MyBinder.cs" />

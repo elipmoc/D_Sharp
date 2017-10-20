@@ -49,13 +49,45 @@ namespace D_Sharp
         //文
         static public Action CreateStatement(TokenStream tokenst)
         {
-            var body = CreateSiki(tokenst);
-            if (body == null)
-                if((body=CreateGlobalVariableDecl(tokenst))==null)
+            Expression body;
+            if (CreateImport(tokenst) == false)
+            {
+                body = CreateSiki(tokenst);
+                if (body == null)
+                    if ((body = CreateGlobalVariableDecl(tokenst)) == null)
+                        return null;
+                if (tokenst.NowIndex < tokenst.Size)
                     return null;
-            if (tokenst.NowIndex < tokenst.Size)
-                return null;
+            }
+            else
+                body = Expression.Constant(0);
             return Expression.Lambda<Action>(body).Compile();
+        }
+
+        //Import
+        static bool CreateImport(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().Str == "import")
+            {
+                tokenst.Next();
+                if (tokenst.Get().TokenType == TokenType.String)
+                {
+                    var _namespace = new string( tokenst.Get().Str.Take(tokenst.Get().Str.Length - 1).Skip(1).ToArray());
+                    tokenst.Next();
+                    if(tokenst.Get().TokenType == TokenType.String)
+                    {
+                        var assemblyInfo = new string(tokenst.Get().Str.Take(tokenst.Get().Str.Length - 1).Skip(1).ToArray());
+                        if (ImportTable.AddImport(_namespace, _namespace + "," + assemblyInfo))
+                        {
+                            tokenst.Next();
+                            return true;
+                        }
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return false;
         }
 
         //グローバル変数宣言
@@ -1016,13 +1048,17 @@ namespace D_Sharp
         //クラス名
         static Type CreateNetClassType(TokenStream tokenst) {
             var checkPoint = tokenst.NowIndex;
-            string className="";
+            string _namespace="";
+            string className = "";
+            string tempName = "";
             if (tokenst.Get().TokenType == TokenType.Identifier)
             {
                 className = tokenst.Get().Str;
+                _namespace = className;
                 tokenst.Next();
                 while (tokenst.Get().Str =="@" )
                 {
+                   if(tempName!="") _namespace +="."+ tempName;
                     tokenst.Next();
                     if (tokenst.Get().TokenType != TokenType.Identifier)
                     {
@@ -1030,8 +1066,12 @@ namespace D_Sharp
                         return null;
                     }
                     className +="."+ tokenst.Get().Str;
+                    tempName= tokenst.Get().Str;
                     tokenst.Next();
                 }
+                string assemblyName = ImportTable.GetImport(_namespace);
+                if (assemblyName != null)
+                    className += "," + assemblyName;
                 return Type.GetType(className);
             }
             tokenst.Rollback(checkPoint);

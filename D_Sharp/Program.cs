@@ -6,16 +6,17 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.IO;
 
+namespace A
+{
+    namespace B
+    {
+        class J { }
+    }
+}
+
 namespace D_Sharp
 {
 
-    class IORef
-    {
-
-        private int i;
-        public Unit set(int val) { i=val; return new Unit(); }
-        public int get() { return i; }
-    }
     class Program
     {
         //拡張BNF記法
@@ -26,11 +27,15 @@ namespace D_Sharp
 
         /*
         文
-            : 式 | 変数宣言
+            : import | 式 | 変数宣言
             ;
 
         変数宣言
             : [型指定子3],識別子,"=",式
+            ;
+
+        import
+            : "import" ,文字列,文字列
             ;
 
         式
@@ -155,11 +160,13 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+            //import "System.Windows.Forms" "Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b77a5c561934e089"
+            var type=Type.GetType(
+                "System.Windows.Forms.MessageBox,System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding =Encoding.Unicode;
-
             Console.Clear();
 
             //ファイルからプログラム読み込み
