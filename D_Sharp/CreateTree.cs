@@ -147,9 +147,38 @@ namespace D_Sharp
         static Expression CreateSiki(TokenStream tokenst, Type[] argTypes=null)
         {
             Expression expr;
-            if ((expr = CreateCast(tokenst,argTypes)) != null)
+            if ((expr = CreateNetClassNew(tokenst,argTypes)) != null)
                 return expr;
             return null;
+        }
+        //Netクラスnew
+        static Expression CreateNetClassNew(TokenStream tokenst,Type[] argTypes)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().Str == "new")
+            {
+              
+                tokenst.Next();
+                var classType = CreateNetClassType(tokenst);
+                if (classType != null)
+                {
+                    if (tokenst.Get().Str == "(")
+                    {
+                        tokenst.Next();
+                        var args=CreateArgs(tokenst, argTypes);
+                        if (args != null && tokenst.Get().Str==")")
+                        {
+                            tokenst.Next();
+                            var constructorInfo=
+                                classType.GetConstructor(BindingFlags.Public|BindingFlags.Instance, null,CallingConventions.HasThis, args.Select(arg => arg.Type).ToArray(), null);
+                            if(constructorInfo!=null)
+                                return Expression.New(constructorInfo,args);
+                        }
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return CreateCast(tokenst, argTypes);
         }
 
         //キャスト

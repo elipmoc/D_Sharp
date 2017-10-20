@@ -9,10 +9,12 @@ using System.IO;
 namespace D_Sharp
 {
 
-    class Hoge
+    class IORef
     {
 
-        public static int a() { return 1; }
+        private int i;
+        public Unit set(int val) { i=val; return new Unit(); }
+        public int get() { return i; }
     }
     class Program
     {
@@ -32,7 +34,11 @@ namespace D_Sharp
             ;
 
         式
-            :キャスト
+            :Netクラスnew
+            ;
+
+        Netクラスnew
+            :( "new" , クラス名 , "(",引数,")" ) | キャスト
             ;
 
         キャスト
@@ -145,6 +151,7 @@ namespace D_Sharp
             ;
             
         */
+
 
         static void Main(string[] args)
         {
