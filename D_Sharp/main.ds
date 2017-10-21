@@ -1,0 +1,99 @@
+/*でかい方を返す*/
+double->double->double::max=
+	(a,b){a>b?a:b};
+
+/*小さい方を返す*/
+double->double->double::min=
+	(a,b){a>b?b:a};
+
+/*バブルソート用のswap*/
+double[]->double[]::bswap=(list){
+	getlen(list)==1?list
+	:head(list)<get(list,1)?
+		[get(list,1)]++bswap([head(list)]++drop(list,2))
+		:
+		[head(list)]++bswap([get(list,1)]++drop(list,2))
+};
+
+/*バブルソート*/
+double[]->double[]::bsort=(list){
+	getlen(list)==1?
+		list
+		:
+		let x=bswap(list)
+		in bsort(take(x,getlen(list)-1))++[last(x)]
+};
+
+/*fizzbuzz*/
+int->char[]::fizzbuzz=(num){
+	num%15==0? "fizzbuzz"
+	:num%3==0? "fizz"
+	:num%5==0? "buzz":tostring(num)
+};
+
+/*fizzbuzzloop*/
+int->int->unit::fizzBuzzLoop=(b,e){
+	let hoge=printstr(fizzbuzz(b)) in b==e?tounit(0):fizzBuzzLoop(b+1,e)
+};
+
+/*左畳みこみ*/
+[double->double->double]->double->double[]->double::foldl=(f,a,xs){
+	getlen(xs)==0?a:foldl(f,f(a,head(xs)),tail(xs))
+};
+
+/*カリー化のてすと*/
+double->[double->double]::add=(a){(b){a+b}};
+
+/*フィルター*/
+[double->bool]->double[]->double[]::filter=(f,a){
+	getlen(a)==0?
+		a
+		:
+		let list=filter(f,tail(a)),h=head(a)
+		in f(h)?[h]++list:list
+};
+
+/*クイックソート*/
+double[]->double[]::quicksort=(xs){
+	getlen(xs)==0?
+		xs
+		:
+		let x=head(xs),t=tail(xs),q=quicksort
+		in q(filter((n){n<=x},t))++[x]++q(filter((n){n>x},t))
+};
+
+
+/*--------------------------------------------------------*/
+
+printlist(quicksort([ 8.0 , 7.0 , 5.0 , -10.0 , 2.0 , 3.0 ]));
+print(System@Math.Pow(2,3));
+print(System@Math.Cos(3.14));
+print(System@Math.Max(1,14));
+System@Console.WriteLine(4);
+System@Console.WriteLine([4]);
+print(45.GetType());
+System@Console.WriteLine(45.ToString());
+print(System@Int32.Parse(45.ToString()));
+print(System@Int32.Parse(arrayToString("114514")));
+
+rand=new System@Random();
+
+print(rand.NextDouble());
+
+print(rand.NextDouble());
+
+print(rand.NextDouble());
+
+a=new D_Sharp@A();
+a.GetB().GetC().Do();
+
+import "System.Windows.Forms" "Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b77a5c561934e089";
+import "System.Drawing" "Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+form = new System@Windows@Forms@Form();
+form.Text=arrayToString("aaabbb");
+label = new System@Windows@Forms@Label();
+label.Text = arrayToString("HelloWorld");
+label.Font = new System@Drawing@Font(arrayToString("Arial"), 20, System@Drawing@FontStyle.Bold);
+label.Size = new System@Drawing@Size(170,60);
+form.Controls.Add(label);
+System@Windows@Forms@Application.Run(form);

@@ -22,6 +22,7 @@ namespace D_Sharp
 
     class A
     {
+        
         public B b = new B();
         public B GetB() { return b; }
     }
