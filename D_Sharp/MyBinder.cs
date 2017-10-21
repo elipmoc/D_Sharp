@@ -279,10 +279,17 @@ public class MyBinder : Binder
                     default: return false;
                 }
         }
-        if (type2 == typeof(object))
-            return true;
+      /*  if (type2 == typeof(object))
+            return true;*/
         if (type1==type2)
             return true;
+
+        var baseType = type1.BaseType;
+        while (baseType!=null) {
+            if (baseType == type2)
+                return true;
+            baseType = baseType.BaseType;
+        }
         return false;
     }
 }

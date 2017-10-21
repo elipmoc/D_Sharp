@@ -6,16 +6,25 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.IO;
 
-namespace A
-{
-    namespace B
-    {
-        class J { }
-    }
-}
 
 namespace D_Sharp
 {
+    class C
+    {
+        public void Do() { Console.WriteLine("aaaa"); }
+    }
+
+    class B
+    {
+        public C c = new C();
+        public C GetC() { return c; }
+    }
+
+    class A
+    {
+        public B b = new B();
+        public B GetB() { return b; }
+    }
 
     class Program
     {
@@ -67,11 +76,19 @@ namespace D_Sharp
             ;
             
         項
-            :[-] ,　メンバメソッド呼び出し { "*" | "/", メンバメソッド呼び出し }
+            :[-] ,　Netクラスのアクセス { "*" | "/", Netクラスのアクセス }
             ;
 
-        メンバメソッド呼び出し
-            :ラムダ呼び出し ,{ "." , 識別子 , "(",引数,")"}
+        Netクラスのアクセス
+            :ラムダ呼び出し , { ".", Netクラスメンバメソッド呼び出し | Netクラスプロパティメソッド呼び出し }
+            ;
+
+        Netクラスメンバメソッド呼び出し
+            : 識別子 , "(",引数,")"
+            ;
+
+        Netクラスプロパティ取得
+            : 識別子 , {"=" , 式}
             ;
 
         ラムダ呼び出し
@@ -160,9 +177,14 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+            var a=new System.Windows.Forms.Form();
+            var label = new System.Windows.Forms.Label();
+            label.Text = "HelloWorld";
+            label.Size = new System.Drawing.Size(170,60);
+            label.Font = new System.Drawing.Font("Arial", 20, System.Drawing.FontStyle.Bold);
+            a.Controls.Add(label);
+          // System.Windows.Forms.Application.Run(a);
             //import "System.Windows.Forms" "Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b77a5c561934e089"
-            var type=Type.GetType(
-                "System.Windows.Forms.MessageBox,System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.InputEncoding = Encoding.Unicode;

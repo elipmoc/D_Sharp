@@ -203,8 +203,11 @@ namespace D_Sharp
                             tokenst.Next();
                             var constructorInfo=
                                 classType.GetConstructor(BindingFlags.Public|BindingFlags.Instance, null,CallingConventions.HasThis, args.Select(arg => arg.Type).ToArray(), null);
-                            if(constructorInfo!=null)
-                                return Expression.New(constructorInfo,args);
+                            if (constructorInfo != null)
+                            {
+                                var paramT = constructorInfo.GetParameters().Select(param => param.ParameterType).ToArray();
+                                return Expression.New(constructorInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
+                            }
                         }
                     }
                 }
@@ -382,7 +385,7 @@ namespace D_Sharp
                 tokenst.Next();
                 signedFlag = true;
             }
-            if ((left = CreateMemberMethodCall(tokenst,argTypes)) != null)
+            if ((left = CreateNetClassAccess(tokenst,argTypes)) != null)
             {
                 Expression right;
                 string op;
@@ -390,7 +393,7 @@ namespace D_Sharp
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateMemberMethodCall(tokenst,argTypes)) == null)
+                    if ((right = CreateNetClassAccess(tokenst,argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -720,60 +723,99 @@ namespace D_Sharp
                 return new List<Expression>();
         }
 
-        //メンバメソッド呼び出し
-        static Expression CreateMemberMethodCall(TokenStream tokenst,Type[] argTypes)
+        //Netクラスアクセス
+        static Expression CreateNetClassAccess(TokenStream tokenst, Type[] argTypes)
+        {
+            var checkPoint = tokenst.NowIndex;
+            var expr = CreateLambdaCall(tokenst, argTypes);
+            if (expr != null)
+            {
+                Expression expr2;
+                while (tokenst.NowIndex<tokenst.Size-1 && tokenst.Get().Str == ".")
+                {
+                    tokenst.Next();
+                    expr2=CreateMemberMethodCall(expr, tokenst, argTypes);
+                    if (expr2 != null)
+                        expr = expr2;
+                    else
+                        expr = CreateNetClassPropertyGet(expr, tokenst, argTypes);
+                    if (expr == null)
+                    {
+                        tokenst.Rollback(checkPoint);
+                        return null;
+                    }
+                }
+                return expr;
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //Netクラスメンバメソッド呼び出し
+        static Expression CreateMemberMethodCall(Expression expr,TokenStream tokenst,Type[] argTypes)
         {
             var checkPoint = tokenst.NowIndex;
 
-
-            Expression expr;
-
-            if ((expr = CreateLambdaCall(tokenst, argTypes)) != null){}
-            else
-            {
-                tokenst.Rollback(checkPoint);
-                return null;
-            }
-
-            List<Expression> args;
-
-            //引数確認
-            while (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ".")
-            {
-                tokenst.Next();
+                List<Expression> args;
                 string methodName;
+
                 if (tokenst.Get().TokenType == TokenType.Identifier)
                 {
                     methodName = tokenst.Get().Str;
                     tokenst.Next();
-                    if (tokenst.Get().Str == "(")
+                if (tokenst.NowIndex<tokenst.Size-1 && tokenst.Get().Str == "(")
+                {
+                    tokenst.Next();
+                    if ((args = CreateArgs(tokenst, DelegateHelper.GetTypesFromDelegate(expr.Type))) != null)
                     {
-                        tokenst.Next();
-                        if ((args = CreateArgs(tokenst, DelegateHelper.GetTypesFromDelegate(expr.Type))) != null)
+                        if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ")")
                         {
-                            if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ")")
+                            tokenst.Next();
+                            var methodInfo = expr.Type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance, new MyBinder(), args.Select(arg => arg.Type).ToArray(), null);
+                            var paramT = methodInfo.GetParameters().Select(param => param.ParameterType).ToArray();
+                            if (methodName == "Add")
                             {
-                                tokenst.Next();
-                                var methodInfo=expr.Type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance, new MyBinder(), args.Select(arg => arg.Type).ToArray(), null);
-                                var paramT = methodInfo.GetParameters().Select(param => param.ParameterType).ToArray();
-                                expr = Expression.Call(expr,methodInfo , args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
+                                new Unit();
                             }
-                            else
-                            {
-                                tokenst.Rollback(checkPoint);
-                                return null;
-                            }
-                        }
-                        else
-                        {
-                            tokenst.Rollback(checkPoint);
-                            return null;
+                            expr = Expression.Call(expr, methodInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
+                            return expr;
                         }
                     }
                 }
             }
-            return expr;
+            tokenst.Rollback(checkPoint);
+            return null;
         }
+
+        //Netクラスプロパティ取得
+        static Expression CreateNetClassPropertyGet(Expression expr, TokenStream tokenst, Type[] argTypes)
+        {
+            var checkPoint = tokenst.NowIndex;
+
+            string propertyOrFieldName;
+
+            if (tokenst.Get().TokenType == TokenType.Identifier)
+            {
+                propertyOrFieldName = tokenst.Get().Str;
+                tokenst.Next();
+                    if (tokenst.NowIndex<tokenst.Size-1&& tokenst.Get().Str == "=")
+                    {
+                        tokenst.Next();
+                        var expr2 = CreateSiki(tokenst, null);
+                        if (expr2 == null)
+                        {
+                            tokenst.Rollback(checkPoint);
+                            return null;
+                        }
+                        return Expression.Assign(Expression.PropertyOrField(expr, propertyOrFieldName),expr2);
+                    }
+                    else
+                        return Expression.PropertyOrField(expr, propertyOrFieldName);
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
         //ラムダ呼び出し
         static Expression CreateLambdaCall(TokenStream tokenst,Type[] argTypes)
         {
