@@ -602,7 +602,7 @@ namespace D_Sharp
                             {
                                 if (tokenst.Get().Str == ")")
                                 {
-                                    var methodInfo=type.GetMethod(funcName,BindingFlags.Public|BindingFlags.Static,new MyBinder(), args.Select(arg=>arg.Type).ToArray(),null);
+                                    var methodInfo=SelectMethod.Select(type,funcName,BindingFlags.Public|BindingFlags.Static, args.Select(arg=>arg.Type).ToArray());
                                     if (methodInfo != null)
                                     {
                                        var paramT= methodInfo.GetParameters().Select(param=>param.ParameterType).ToArray();
@@ -636,33 +636,16 @@ namespace D_Sharp
                         if (tokenst.Get().Str == ")")
                         {
                             MethodInfo methodInfo;
-                            MethodInfo makeGeneric;
-                            methodInfo = typeof(built_in_functions).GetMethod(funcName);
+                            methodInfo = 
+                                SelectMethod.Select(typeof(built_in_functions),funcName ,BindingFlags.Static | BindingFlags.Public, args.Select(x => x.Type).ToArray());
                             if (methodInfo == null)
                             {
                                 tokenst.Rollback(checkPoint);
                                 return null;
                             }
-                            if (funcName == "get"||funcName=="getlen"||funcName=="arrayToString"||
-                                funcName=="take"|| funcName == "merge"||
-                                funcName=="printlist" ||funcName=="tail"||
-                                funcName=="head" || funcName=="last"|| funcName=="drop"||funcName=="insert" ||
-                                funcName=="printstr")
-                            {
-                                makeGeneric = methodInfo.MakeGenericMethod(args[0].Type.GetElementType());
-                            }
-                            else
-                            {
-                                if(methodInfo.IsGenericMethod==true)
-                                    makeGeneric = methodInfo.MakeGenericMethod(args.Select(x => x.Type).ToArray());
-                                else
-                                    makeGeneric = methodInfo;
-                            }
-                            if (makeGeneric != null)
-                            {
                                 tokenst.Next();
-                               return Expression.Call(makeGeneric, args);
-                            }
+                            var paramT = methodInfo.GetParameters().Select(param => param.ParameterType).ToArray();
+                            return Expression.Call(methodInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
                         }
                     }
                 }
@@ -771,12 +754,8 @@ namespace D_Sharp
                         if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ")")
                         {
                             tokenst.Next();
-                            var methodInfo = expr.Type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance, new MyBinder(), args.Select(arg => arg.Type).ToArray(), null);
+                            var methodInfo =SelectMethod.Select(expr.Type,methodName, BindingFlags.Public | BindingFlags.Instance, args.Select(arg => arg.Type).ToArray());
                             var paramT = methodInfo.GetParameters().Select(param => param.ParameterType).ToArray();
-                            if (methodName == "Add")
-                            {
-                                new Unit();
-                            }
                             expr = Expression.Call(expr, methodInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
                             return expr;
                         }

@@ -52,7 +52,7 @@ namespace D_Sharp
         }
 
         //配列添え字アクセス
-        static public string arrayToString<T>(char[] t)
+        static public string arrayToString(char[] t)
         {
             return new string(t);
         }
