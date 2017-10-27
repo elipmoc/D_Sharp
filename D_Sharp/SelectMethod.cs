@@ -34,7 +34,7 @@ namespace D_Sharp
         struct Tuple
         {
             public MethodInfo methodInfo;
-            public IEnumerable<int?> paramsPriority;
+            public　IEnumerable<ParamsPriority> paramsPrioritys;
         }
 
        
@@ -58,33 +58,37 @@ namespace D_Sharp
                     var parameters = m.GetParameters();
                     Tuple tuple;
                     tuple.methodInfo = m;
-                    tuple.paramsPriority =
+                    tuple.paramsPrioritys =
                         parameters.
                             Zip(types, (param, type) =>
-                                TypeCheck.IsImplicitCast(type, param.ParameterType));
+                                TypeCheck.GetParamsPriority(type, param.ParameterType));
 
                     return tuple;
-                });
+                }).Where(tuple=>!tuple.paramsPrioritys.Contains(null));
 
-            var tempTuple= new Tuple{ paramsPriority=null};
+            var tempTuple= new Tuple{ paramsPrioritys=null};
+            int tempSum = 0;
+
             foreach (var it in tuples)
             {
+                
+                if(tempTuple.paramsPrioritys==null)
+                {
+                    tempTuple = it;
+                    continue;
+                }
 
                 int sum = 0;
-                bool flag = true;
-                foreach (var it2 in it.paramsPriority)
+                sum = it.paramsPrioritys.Zip(tempTuple.paramsPrioritys,
+                    (paramsPriority, tParamsPriority) => paramsPriority.CompareTo(tParamsPriority))
+                    .Sum();
+
+                if (sum == tempSum)
+                    return null;
+                else if (sum > tempSum)
                 {
-                    if (it2 != null)
-                        sum += (int)it2;
-                    else
-                        flag = false;
-                }
-                if (flag)
-                {
-                    if(tempTuple.paramsPriority==null || tempTuple.paramsPriority.Sum() < sum)
-                    {
-                        tempTuple = it;
-                    }
+                    tempTuple = it;
+                    tempSum = sum;
                 }
             }
             if (tempTuple.methodInfo == null)

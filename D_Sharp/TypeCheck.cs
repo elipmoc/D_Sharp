@@ -6,183 +6,321 @@ using System.Threading.Tasks;
 
 namespace D_Sharp
 {
-    class TypeCheck
+    public class ParamsPriority:IComparable<ParamsPriority>
+    {
+       public enum MatchKind
+        {
+            //型一致
+            TypeMatch=0,
+            //ジェネリック型一致
+            GenericTypeMatch,
+            //暗黙的キャストによる一致
+            ImplicitCastMatch,
+            //アップキャストによる一致
+            UpCastMatch,
+            //ジェネリック型のアップキャストによる一致
+            GenericTypeUpCastMatch,
+        }
+        public MatchKind matchkind{get;set;}
+        //アップキャストの深度
+        public int upCastNest = 0;
+
+        //型の具体性
+        public int concreteness = 0;
+
+        //暗黙的キャストの優先順位
+        public int implicitCastPriority = 0;
+
+        //優先順位比較
+        //0で優先順位が等しい,もしくは判別不能
+        //1でxのほうが優先順位が高い
+        //-1でyのほうが優先順位が高い
+
+        public int CompareTo(ParamsPriority y)
+        {
+            if (this.matchkind < y.matchkind)
+                return 1;
+            else if (this.matchkind > y.matchkind)
+                return -1;
+            switch (this.matchkind)
+            {
+
+                case MatchKind.TypeMatch:
+                    return 0;
+
+                case MatchKind.GenericTypeMatch:
+                    if (this.concreteness > y.concreteness)
+                        return 1;
+                    else if (this.concreteness < y.concreteness)
+                        return -1;
+                    return 0;
+
+                case MatchKind.ImplicitCastMatch:
+                    if (this.implicitCastPriority > y.implicitCastPriority)
+                        return 1;
+                    else if (this.implicitCastPriority < y.implicitCastPriority)
+                        return -1;
+                    return 0;
+
+                case MatchKind.UpCastMatch:
+                    if (this.upCastNest < y.upCastNest)
+                        return 1;
+                    else if (this.upCastNest > y.upCastNest)
+                        return -1;
+                    return 0;
+            }
+
+            throw new Exception("error!");
+        }
+    }
+
+    public class TypeCheck
     {
 
         //型が等しかったらtrue
-        static public bool IsComplete(Type t1,Type t2)
+        static public ParamsPriority IsComplete(Type t1,Type t2)
         {
-            return t1 == t2;
-        }
-
-        //アップキャストができるなら親の最小の深さを返す
-        //ちがうなら-1
-        static private int? IsUpCast(Type t1, Type t2)
-        {
-            int count = 0;
-            var baseType = t1.BaseType;
-            while (baseType != null)
+            if (t1 == t2)
             {
-                count++;
-                if (baseType == t2)
-                    return count;
-                baseType = baseType.BaseType;
+                var paramsPriority = new ParamsPriority();
+                paramsPriority.matchkind = ParamsPriority.MatchKind.TypeMatch;
+                return paramsPriority;
             }
             return null;
         }
 
-        //ジェネリックの判定
-        static public int? IsGeneric(Type t1,Type t2)
+        //アップキャストができるなら親の最小の深さを返す
+        //ちがうなら-1
+        static private int IsUpCast(Type t1, Type t2)
         {
+
+            if (t1.BaseType != null)
+            {
+                if (t1.BaseType == t2)
+                    return 1;
+               var upCastNest= IsUpCast(t1.BaseType, t2);
+                if (upCastNest != 0)
+                    return upCastNest+1;
+            }
+
+            foreach(var interfaceType in t1.GetInterfaces())
+            {
+                if (interfaceType == t2)
+                    return 1;
+                var upCastNest = IsUpCast(interfaceType, t2);
+                if (upCastNest != 0)
+                    return upCastNest+1;
+            }
+
+            return 0;
+        }
+
+
+        //ジェネリックの判定
+        //型の具体性を返す
+        //失敗で0を返す
+        static public int IsGeneric(Type t1,Type t2)
+        {
+
             if (t2.IsGenericParameter)
-                return 18;
-            if (t1.IsArray && t2.IsArray && t1.GetArrayRank() == t2.GetArrayRank() && t2.GetElementType().IsGenericParameter)
-                return 19;
+                return 1;
+
             if (t1 == t2)
-                return 20;
+                return 2;
+
+            if (t1.IsArray && t2.IsArray && t1.GetArrayRank() == t2.GetArrayRank())
+            {
+                var hoge = IsGeneric(t1.GetElementType(), t2.GetElementType());
+                if (hoge == 0)
+                    return 0;
+                return hoge + 1;
+            }
+
             if (t1.IsGenericType&& t2.IsGenericType&& t1.GetGenericTypeDefinition() == t2.GetGenericTypeDefinition())
             {
                 var genericParams1= t1.GetGenericArguments();
                 var genericParams2 = t2.GetGenericArguments();
                 if (genericParams1.Length != genericParams2.Length)
-                    return null;
+                    return 0;
 
-                int sum = 0;
+                int sum = 1;
                 for(int i=0; i < genericParams1.Length; i++)
                 {
                     var hoge = IsGeneric(genericParams1[i], genericParams2[i]);
-                    if (hoge==null)
-                        return null;
-                    sum += 1 + (int)hoge;
+                    if (hoge==0)
+                        return 0;
+                    sum += hoge;
                 }
                 return sum;
             }
-            return null;
+            return 0;
         }
 
+    /*    static public int IsGenericUpCast(Type t1,Type t2)
+        {
+
+        }*/
 
         //暗黙的型変換ができるならオーバーロードした際の優先順位を返す
         //ただし、primitive型のみ
         //アップキャストは対象外
-        static public int? IsImplicitCast(Type t1, Type t2)
+        static public int IsImplicitCast(Type t1, Type t2)
         {
-            if (t1 == t2)
-                return 10000;
-
             if (t1.IsPrimitive && t2.IsPrimitive)
             {
                 TypeCode t1code = Type.GetTypeCode(t1);
                 TypeCode t2code = Type.GetTypeCode(t2);
 
-                if (t1code == TypeCode.Char)
-                    switch (t2code)
-                    {
-                        case TypeCode.UInt16: return 15;
-                        case TypeCode.UInt32: return 13;
-                        case TypeCode.Int32: return 14;
-                        case TypeCode.UInt64: return 11;
-                        case TypeCode.Int64: return 12;
-                        case TypeCode.Single: return 10;
-                        case TypeCode.Double: return 9;
-                        default: return null;
-                    }
+                switch (t1code)
+                {
+                    case TypeCode.Char:
+                        switch (t2code)
+                        {
+                            case TypeCode.UInt16: return 15;
+                            case TypeCode.UInt32: return 13;
+                            case TypeCode.Int32: return 14;
+                            case TypeCode.UInt64: return 11;
+                            case TypeCode.Int64: return 12;
+                            case TypeCode.Single: return 10;
+                            case TypeCode.Double: return 9;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.Byte)
-                    switch (t2code)
-                    {
-                        case TypeCode.UInt16: return 14;
-                        case TypeCode.Int16: return 15;
-                        case TypeCode.UInt32: return 12;
-                        case TypeCode.Int32: return 13;
-                        case TypeCode.UInt64: return 10;
-                        case TypeCode.Int64: return 11;
-                        case TypeCode.Single: return 9;
-                        case TypeCode.Double: return 8;
-                        default: return null;
-                    }
+                    case TypeCode.Byte:
+                        switch (t2code)
+                        {
+                            case TypeCode.UInt16: return 14;
+                            case TypeCode.Int16: return 15;
+                            case TypeCode.UInt32: return 12;
+                            case TypeCode.Int32: return 13;
+                            case TypeCode.UInt64: return 10;
+                            case TypeCode.Int64: return 11;
+                            case TypeCode.Single: return 9;
+                            case TypeCode.Double: return 8;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.SByte)
-                    switch (t2code)
-                    {
-                        case TypeCode.Int16: return 15;
-                        case TypeCode.Int32: return 14;
-                        case TypeCode.Int64: return 13;
-                        case TypeCode.Single: return 12;
-                        case TypeCode.Double: return 11;
-                        default: return null;
-                    }
+                    case TypeCode.SByte:
+                        switch (t2code)
+                        {
+                            case TypeCode.Int16: return 15;
+                            case TypeCode.Int32: return 14;
+                            case TypeCode.Int64: return 13;
+                            case TypeCode.Single: return 12;
+                            case TypeCode.Double: return 11;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.UInt16)
-                    switch (t2code)
-                    {
-                        case TypeCode.UInt32: return 14;
-                        case TypeCode.Int32: return 15;
-                        case TypeCode.UInt64: return 12;
-                        case TypeCode.Int64: return 13;
-                        case TypeCode.Single: return 11;
-                        case TypeCode.Double: return 10;
-                        default: return null;
-                    }
+                    case TypeCode.UInt16:
+                        switch (t2code)
+                        {
+                            case TypeCode.UInt32: return 14;
+                            case TypeCode.Int32: return 15;
+                            case TypeCode.UInt64: return 12;
+                            case TypeCode.Int64: return 13;
+                            case TypeCode.Single: return 11;
+                            case TypeCode.Double: return 10;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.Int16)
-                    switch (t2code)
-                    {
-                        case TypeCode.Int32: return 15;
-                        case TypeCode.Int64: return 14;
-                        case TypeCode.Single: return 13;
-                        case TypeCode.Double: return 12;
-                        default: return null;
-                    }
+                    case TypeCode.Int16:
+                        switch (t2code)
+                        {
+                            case TypeCode.Int32: return 15;
+                            case TypeCode.Int64: return 14;
+                            case TypeCode.Single: return 13;
+                            case TypeCode.Double: return 12;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.UInt32)
-                    switch (t2code)
-                    {
-                        case TypeCode.UInt64: return 14;
-                        case TypeCode.Int64: return 15;
-                        case TypeCode.Single: return 13;
-                        case TypeCode.Double: return 12;
-                        default: return null;
-                    }
+                    case TypeCode.UInt32:
+                        switch (t2code)
+                        {
+                            case TypeCode.UInt64: return 14;
+                            case TypeCode.Int64: return 15;
+                            case TypeCode.Single: return 13;
+                            case TypeCode.Double: return 12;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.Int32)
-                    switch (t2code)
-                    {
-                        case TypeCode.Int16: return 15;
-                        case TypeCode.UInt16: return 14;
-                        case TypeCode.UInt32: return 13;
-                        case TypeCode.Int64: return 12;
-                        case TypeCode.UInt64: return 11;
-                        case TypeCode.Single: return 10;
-                        case TypeCode.Double: return 9;
-                        default: return null;
-                    }
+                    case TypeCode.Int32:
+                        switch (t2code)
+                        {
+                            case TypeCode.Int16: return 15;
+                            case TypeCode.UInt16: return 14;
+                            case TypeCode.UInt32: return 13;
+                            case TypeCode.Int64: return 12;
+                            case TypeCode.UInt64: return 11;
+                            case TypeCode.Single: return 10;
+                            case TypeCode.Double: return 9;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.UInt64)
-                    switch (t2code)
-                    {
-                        case TypeCode.Single: return 15;
-                        case TypeCode.Double: return 14;
-                        default: return null;
-                    }
+                    case TypeCode.UInt64:
+                        switch (t2code)
+                        {
+                            case TypeCode.Single: return 15;
+                            case TypeCode.Double: return 14;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.Int64)
-                    switch (t2code)
-                    {
-                        case TypeCode.UInt64: return 15;
-                        case TypeCode.Single: return 14;
-                        case TypeCode.Double: return 13;
-                        default: return null;
-                    }
+                    case TypeCode.Int64:
+                        switch (t2code)
+                        {
+                            case TypeCode.UInt64: return 15;
+                            case TypeCode.Single: return 14;
+                            case TypeCode.Double: return 13;
+                            default: return 0;
+                        }
 
-                if (t1code == TypeCode.Single)
-                    switch (t2code)
-                    {
-                        case TypeCode.Double: return 15;
-                        default: return null;
-                    }
+                    case TypeCode.Single:
+                        switch (t2code)
+                        {
+                            case TypeCode.Double: return 15;
+                            default: return 0;
+                        }
+                }
             }
-            var count = IsUpCast(t1, t2);
-            return count == null ? IsGeneric(t1,t2) : -count;
+            return 0;
+        }
+
+
+
+        static public ParamsPriority GetParamsPriority(Type t1, Type t2)
+        {
+            ParamsPriority paramsPriority;
+
+            if ((paramsPriority = IsComplete(t1, t2)) != null)
+                return paramsPriority;
+
+            var implicitCastPriority = IsImplicitCast(t1, t2);
+            if (implicitCastPriority != 0)
+            {
+                paramsPriority = new ParamsPriority();
+                paramsPriority.implicitCastPriority=implicitCastPriority;
+                paramsPriority.matchkind = ParamsPriority.MatchKind.ImplicitCastMatch;
+                return paramsPriority;
+            }
+
+            
+            var upCastNest = IsUpCast(t1, t2);
+            if (upCastNest != 0)
+            {
+                paramsPriority = new ParamsPriority();
+                paramsPriority.upCastNest = upCastNest;
+                paramsPriority.matchkind = ParamsPriority.MatchKind.UpCastMatch;
+                return paramsPriority;
+            }
+            var concreteness = IsGeneric(t1, t2);
+            if(concreteness!=0)
+            {
+                paramsPriority = new ParamsPriority();
+                paramsPriority.matchkind = ParamsPriority.MatchKind.GenericTypeMatch;
+                paramsPriority.concreteness = concreteness;
+                return paramsPriority;
+            }
+            // return count == null ? IsGeneric(t1,t2) : -count;
+            return null;
         }
 
     }
