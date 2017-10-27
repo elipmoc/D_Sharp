@@ -69,6 +69,10 @@ namespace TypeCheckTest
             Assert.AreEqual(ParamsPriority.MatchKind.GenericTypeMatch, hoge.matchkind);
             Assert.AreEqual(2, hoge.concreteness);
 
+            //GetGenericUpCast
+            var hoge2 = TypeCheck.GetGenericUpCastInfo(typeof(char[]), typeof(IEnumerable<>));
+            Assert.AreEqual(typeof(IEnumerable<char>), hoge2.Value.upCastedType);
+
         }
 
     }

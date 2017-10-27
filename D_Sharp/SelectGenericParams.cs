@@ -27,7 +27,7 @@ namespace D_Sharp
                     genericType = type;
                 if (genericType != type)
                 {
-                    if (TypeCheck.IsImplicitCast(genericType, type) != null)
+                    if (TypeCheck.IsImplicitCast(genericType, type) != 0)
                     {
                         genericType = type;
                     }
@@ -39,16 +39,22 @@ namespace D_Sharp
                     genericType = type.GetElementType();
                 if (genericType != type.GetElementType())
                 {
-                    if (TypeCheck.IsImplicitCast(genericType, type.GetElementType()) != null)
+                    if (TypeCheck.IsImplicitCast(genericType, type.GetElementType()) != 0)
                     {
                         genericType = type.GetElementType();
                     }
                 }
             }
-            else if (param.IsGenericType && type.IsGenericType)
+            else if (param.IsGenericType)
             {
+
                 var paramNestList = param.GetGenericArguments();
-                var typeNestList = type.GetGenericArguments();
+                Type[] typeNestList;
+                if (type.IsGenericType && param.GetGenericTypeDefinition() == type.GetGenericTypeDefinition())
+                    typeNestList = type.GetGenericArguments();
+                else
+                    typeNestList=
+                        TypeCheck.GetGenericUpCastInfo(type, param).Value.upCastedType.GetGenericArguments();
                 for (int i = 0; i < typeNestList.Length; i++)
                 {
                     GetGenericType(paramNestList[i],typeNestList[i]);

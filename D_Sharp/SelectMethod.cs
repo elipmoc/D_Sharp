@@ -96,8 +96,10 @@ namespace D_Sharp
             if (tempTuple.methodInfo.IsGenericMethod)
             {
 
-               Type genericType = new SelectGenericParams().Select(tempTuple.methodInfo.GetParameters(), types);
-               return tempTuple.methodInfo.MakeGenericMethod(genericType);
+                Type genericType = new SelectGenericParams().Select(tempTuple.methodInfo.GetParameters(), types);
+                if (genericType != null)
+                    return tempTuple.methodInfo.MakeGenericMethod(genericType);
+                return null;
             }
             return tempTuple.methodInfo;
         }

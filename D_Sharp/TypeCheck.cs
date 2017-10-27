@@ -91,7 +91,7 @@ namespace D_Sharp
 
         //アップキャストができるなら親の最小の深さを返す
         //ちがうなら-1
-        static private int IsUpCast(Type t1, Type t2)
+        static public int IsUpCast(Type t1, Type t2)
         {
 
             if (t1.BaseType != null)
@@ -156,10 +156,43 @@ namespace D_Sharp
             return 0;
         }
 
-    /*    static public int IsGenericUpCast(Type t1,Type t2)
-        {
+        public struct GenericUpCastInfo {
+            public int upCastNest;
+            public Type upCastedType;
+        }
 
-        }*/
+        //ジェネリック型を含むアップキャストの判定
+        static public GenericUpCastInfo? GetGenericUpCastInfo(Type t1,Type t2)
+        {
+            if (t2.IsGenericType == false)
+                return null;
+
+            if (t1.BaseType != null)
+            {
+                if (t1.BaseType.IsGenericType && t1.BaseType.GetGenericTypeDefinition() == t2.GetGenericTypeDefinition())
+                    return
+                        new GenericUpCastInfo
+                        { upCastNest = 1,upCastedType= t1.BaseType };
+                var genericUpCastInfo = GetGenericUpCastInfo(t1.BaseType, t2);
+                if (genericUpCastInfo != null)
+                    return new GenericUpCastInfo
+                    { upCastNest = genericUpCastInfo.Value.upCastNest+1,upCastedType=genericUpCastInfo.Value.upCastedType };
+            }
+
+            foreach (var interfaceType in t1.GetInterfaces())
+            {
+                if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == t2.GetGenericTypeDefinition())
+                    return
+                       new GenericUpCastInfo
+                       { upCastNest = 1, upCastedType = interfaceType};
+                var genericUpCastInfo = GetGenericUpCastInfo(interfaceType, t2);
+                if (genericUpCastInfo != null)
+                    return new GenericUpCastInfo
+                    { upCastNest = genericUpCastInfo.Value.upCastNest + 1, upCastedType = genericUpCastInfo.Value.upCastedType };
+            }
+
+            return null;
+        }
 
         //暗黙的型変換ができるならオーバーロードした際の優先順位を返す
         //ただし、primitive型のみ
@@ -319,7 +352,17 @@ namespace D_Sharp
                 paramsPriority.concreteness = concreteness;
                 return paramsPriority;
             }
-            // return count == null ? IsGeneric(t1,t2) : -count;
+            var genericUpCastInfo= GetGenericUpCastInfo(t1, t2);
+            if (genericUpCastInfo != null)
+            {
+                paramsPriority = new ParamsPriority();
+                paramsPriority.upCastNest =
+                    genericUpCastInfo.Value.upCastNest;
+                paramsPriority.matchkind = 
+                    ParamsPriority.MatchKind.GenericTypeUpCastMatch;
+                return paramsPriority;
+            }
+
             return null;
         }
 

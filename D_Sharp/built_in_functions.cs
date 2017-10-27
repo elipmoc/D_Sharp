@@ -17,15 +17,19 @@ namespace D_Sharp
     {
         static public char[] scanf()
         {
-
            return Console.ReadLine().ToArray();
         }
 
         static public double random()
         {
-   
-
             return new System.Random().NextDouble();
+        }
+
+        static public Unit Test<T>(IEnumerable<T> i)
+        {
+            foreach (var item in i)
+                Console.WriteLine(item);
+            return new Unit();
         }
 
         static public T print<T>(T t)
