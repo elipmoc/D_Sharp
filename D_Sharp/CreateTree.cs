@@ -40,7 +40,7 @@ namespace D_Sharp
                     return Expression.GreaterThan(left, right);
                 case "++":
                     return Expression.Call(
-                        typeof(built_in_functions).GetMethod("merge").MakeGenericMethod(left.Type.GetElementType()),
+                        typeof(built_in_functions).GetMethod("merge").MakeGenericMethod(left.Type.GetGenericArguments()[0]),
                         left, right);
             }
             return null;
@@ -574,7 +574,8 @@ namespace D_Sharp
                     }
 
                 }
-                return Expression.NewArrayInit(type, exprList.ToArray());
+                return 
+                    Expression.Convert( Expression.NewArrayInit(type, exprList.ToArray()),typeof(IEnumerable<>).MakeGenericType(type));
             }
             tokenst.Rollback(checkPoint);
             return null;
@@ -1009,7 +1010,7 @@ namespace D_Sharp
                         if (tokenst.Get().Str == "]")
                         {
                             tokenst.Next();
-                            type = type.MakeArrayType();
+                            type = typeof(IEnumerable<>).MakeGenericType(type);
                         }
                         else
                         {

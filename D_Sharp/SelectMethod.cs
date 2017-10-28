@@ -82,13 +82,9 @@ namespace D_Sharp
                 sum = it.paramsPrioritys.Zip(tempTuple.paramsPrioritys,
                     (paramsPriority, tParamsPriority) => paramsPriority.CompareTo(tParamsPriority))
                     .Sum();
-
-                if (sum == tempSum)
-                    return null;
-                else if (sum > tempSum)
+                if (sum > it.methodInfo.GetParameters().Length/2)
                 {
                     tempTuple = it;
-                    tempSum = sum;
                 }
             }
             if (tempTuple.methodInfo == null)
