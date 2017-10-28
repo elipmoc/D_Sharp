@@ -20,6 +20,8 @@ namespace D_Sharp
             UpCastMatch,
             //ジェネリック型のアップキャストによる一致
             GenericTypeUpCastMatch,
+            //オブジェクト型への一致
+            ObjectMatch,
         }
         public MatchKind matchkind{get;set;}
         //アップキャストの深度
@@ -68,6 +70,8 @@ namespace D_Sharp
                     else if (this.upCastNest > y.upCastNest)
                         return -1;
                     return 0;
+                case MatchKind.ObjectMatch:
+                    return 0;
             }
 
             throw new Exception("error!");
@@ -93,7 +97,7 @@ namespace D_Sharp
         //ちがうなら-1
         static public int IsUpCast(Type t1, Type t2)
         {
-
+            
             if (t1.BaseType != null)
             {
                 if (t1.BaseType == t2)
@@ -360,6 +364,14 @@ namespace D_Sharp
                     genericUpCastInfo.Value.upCastNest;
                 paramsPriority.matchkind = 
                     ParamsPriority.MatchKind.GenericTypeUpCastMatch;
+                return paramsPriority;
+            }
+
+            if(t2==typeof(object))
+            {
+                paramsPriority = new ParamsPriority();
+                paramsPriority.matchkind =
+                    ParamsPriority.MatchKind.ObjectMatch;
                 return paramsPriority;
             }
 
