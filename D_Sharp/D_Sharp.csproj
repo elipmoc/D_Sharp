@@ -49,6 +49,7 @@
     <Compile Include="CreateTree.cs" />
     <Compile Include="ImportTable.cs" />
     <Compile Include="Interpreter.cs" />
+    <Compile Include="IO.cs" />
     <Compile Include="LexicalAnalyzer.cs" />
     <Compile Include="MakeNumericalSequenceList.cs" />
     <Compile Include="MyBinder.cs" />

@@ -188,7 +188,6 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
-
             var a=new System.Windows.Forms.Form();
             var label = new System.Windows.Forms.Label();
             label.Text = "HelloWorld";

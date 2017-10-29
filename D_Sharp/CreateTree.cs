@@ -666,7 +666,14 @@ namespace D_Sharp
                                     {
                                        var paramT= methodInfo.GetParameters().Select(param=>param.ParameterType).ToArray();
                                         tokenst.Next();
-                                        return Expression.Call(methodInfo, args.Select((arg,i)=>Expression.Convert(arg,paramT[i])));
+                                        var callExpr=Expression.Call(methodInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
+
+                                        if (methodInfo.ReturnType == typeof(void))
+                                                return Expression.Block(
+                                                    callExpr
+                                                    ,Expression.Constant(new Unit())
+                                                );
+                                        return callExpr;
                                     }
                                 }
                             }
@@ -816,6 +823,11 @@ namespace D_Sharp
                             var methodInfo =SelectMethod.Select(expr.Type,methodName, BindingFlags.Public | BindingFlags.Instance, args.Select(arg => arg.Type).ToArray());
                             var paramT = methodInfo.GetParameters().Select(param => param.ParameterType).ToArray();
                             expr = Expression.Call(expr, methodInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
+                            if (methodInfo.ReturnType == typeof(void))
+                                return Expression.Block(
+                                    expr
+                                    , Expression.Constant(new Unit())
+                                );
                             return expr;
                         }
                     }
