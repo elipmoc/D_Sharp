@@ -534,7 +534,16 @@ namespace D_Sharp
             if (tokenst.Get().Str == "[")
             {
                 tokenst.Next();
-                var array = CreateListNakami(tokenst,argTypes);
+                var array = CreateSuretuHyoukiList(tokenst, argTypes);
+                if (array != null)
+                {
+                    if (tokenst.Get().Str == "]")
+                    {
+                        tokenst.Next();
+                        return array;
+                    }
+                }
+                array = CreateListNakami(tokenst,argTypes);
                 if (array != null)
                 {
                     if (tokenst.Get().Str == "]")
@@ -576,6 +585,38 @@ namespace D_Sharp
                 }
                 return 
                     Expression.Convert( Expression.NewArrayInit(type, exprList.ToArray()),typeof(IEnumerable<>).MakeGenericType(type));
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //数列表記リスト
+        static Expression CreateSuretuHyoukiList(TokenStream tokenst,Type[] argTypes) {
+            var checkPoint = tokenst.NowIndex;
+            Expression beginExpr;
+            if ((beginExpr = CreateSiki(tokenst, argTypes != null ? new[] { argTypes[0].GetElementType() } : null)) != null)
+            {
+                var type = beginExpr.Type;
+                if (tokenst.Get().Str == ",")
+                {
+                    Expression secondExpr;
+                    tokenst.Next();
+                    if ((secondExpr = CreateSiki(tokenst, new[] { type })) != null)
+                    {
+                        if (tokenst.Get().Str == "..")
+                        {
+                            tokenst.Next();
+                            var methodInfo=
+                                SelectMethod.Select
+                                    (typeof(MakeNumericalSequenceList), "MakeInfinityList", BindingFlags.Public | BindingFlags.Static, new Type[] { beginExpr.Type, secondExpr.Type });
+                            if (methodInfo != null)
+                            {
+                                return Expression.Call(methodInfo, beginExpr, Expression.Subtract(secondExpr,beginExpr));
+                            }
+                        }
+                    }
+                }
+             
             }
             tokenst.Rollback(checkPoint);
             return null;

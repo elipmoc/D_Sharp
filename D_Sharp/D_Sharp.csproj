@@ -50,6 +50,7 @@
     <Compile Include="ImportTable.cs" />
     <Compile Include="Interpreter.cs" />
     <Compile Include="LexicalAnalyzer.cs" />
+    <Compile Include="MakeNumericalSequenceList.cs" />
     <Compile Include="MyBinder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -34,7 +34,7 @@ namespace D_Sharp
 
         static public T print<T>(T t)
         {
-            Console.WriteLine("( ﾟДﾟ)　" + t);
+            Console.WriteLine(t);
             return t;
         }
 
@@ -121,13 +121,18 @@ namespace D_Sharp
         //配列表示
         static public IEnumerable<T> printlist<T>(IEnumerable<T> t)
         {
-            string str="[";
+            Console.Write("[");
+            bool flag=false;
             foreach(var item in t)
             {
-                str+=item+",";
+                if (flag == true)
+                    Console.Write(",");
+                else
+                    flag = true;
+
+                Console.Write(item);
             }
-            str=(str.Length==1?str:str.Remove(str.Length - 1,1))+"]";
-            print(str);
+            Console.WriteLine("]");
             return t;
         }
 

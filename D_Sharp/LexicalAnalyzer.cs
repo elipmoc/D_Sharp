@@ -19,7 +19,7 @@ namespace D_Sharp
             var num_int = new Regex(@"^\d+");
             var character = new Regex(@"^(?:').(?:')");
             var string_ = new Regex("^\"[^\"]*\"");
-            var symbol = new Regex(@"^((\.)|(@)|(new)|(int)|(in)|(let)|(unit)|(void)|(double)|(bool)|(->)|(::)|(==)|(<=)|(>=)|(!=)|(\+\+)|[<>\[\]:\?\+\-%\*\/{}\(\)=,])");
+            var symbol = new Regex(@"^((\.\.)|(\.)|(@)|(new)|(int)|(in)|(let)|(unit)|(void)|(double)|(bool)|(->)|(::)|(==)|(<=)|(>=)|(!=)|(\+\+)|[<>\[\]:\?\+\-%\*\/{}\(\)=,])");
             var Identifier = new Regex(@"^([a-z]|[A-Z]|[0-9]|_)+");
 //            var GlobalVariable = new Regex(@"^g_[a-z]+");
             Match match;
