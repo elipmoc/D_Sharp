@@ -10,7 +10,6 @@ namespace D_Sharp
 {
     static class CreateTree
     {
-
         //二項演算子の生成
         static Expression CreateBinaryOperator(Expression left,Expression right,string str)
         {
@@ -73,17 +72,12 @@ namespace D_Sharp
                 tokenst.Next();
                 if (tokenst.Get().TokenType == TokenType.String)
                 {
-                    var _namespace = new string( tokenst.Get().Str.Take(tokenst.Get().Str.Length - 1).Skip(1).ToArray());
+                    var success=AssemblyTable.AddAsm(
+                        new string(tokenst.Get().Str.Take(tokenst.Get().Str.Length - 1).Skip(1).ToArray())
+                    );
                     tokenst.Next();
-                    if(tokenst.Get().TokenType == TokenType.String)
-                    {
-                        var assemblyInfo = new string(tokenst.Get().Str.Take(tokenst.Get().Str.Length - 1).Skip(1).ToArray());
-                        if (ImportTable.AddImport(_namespace, _namespace + "," + assemblyInfo))
-                        {
-                            tokenst.Next();
-                            return true;
-                        }
-                    }
+                    return success;
+                    
                 }
             }
             tokenst.Rollback(checkPoint);
@@ -178,9 +172,11 @@ namespace D_Sharp
         //式
         static Expression CreateSiki(TokenStream tokenst, Type[] argTypes=null)
         {
+            var checkPoint = tokenst.NowIndex;
             Expression expr;
             if ((expr = CreateNetClassNew(tokenst,argTypes)) != null)
                 return expr;
+            tokenst.Rollback(checkPoint);
             return null;
         }
         //Netクラスnew
@@ -290,7 +286,7 @@ namespace D_Sharp
         {
             var checkPoint = tokenst.NowIndex;
             Expression expr;
-            if ((expr = CreateHitosi(tokenst,argTypes)) != null)
+            if ((expr = CreateBind(tokenst,argTypes)) != null)
             {
                 if(tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == "?")
                 {
@@ -311,6 +307,33 @@ namespace D_Sharp
                     return null;
                 }
                 return expr;
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //バインド
+        static Expression CreateBind(TokenStream tokenst,Type[] argTypes)
+        {
+            var checkPoint = tokenst.NowIndex;
+            Expression left;
+            if ((left = CreateHitosi(tokenst, argTypes)) != null)
+            {
+                Expression right;
+                while (tokenst.NowIndex < tokenst.Size && (
+                    tokenst.Get().Str == ">>="
+                    ))
+                {
+                    tokenst.Next();
+                    if ((right = CreateHitosi(tokenst, argTypes)) == null)
+                    {
+                        tokenst.Rollback(checkPoint);
+                        return null;
+                    }
+                    left =
+                         Expression.Invoke(right,left);
+                }
+                return left;
             }
             tokenst.Rollback(checkPoint);
             return null;
@@ -916,6 +939,11 @@ namespace D_Sharp
         static Expression CreateLambdaDefinition(TokenStream tokenst, Type[] argTypes)
         {
             var checkPoint=tokenst.NowIndex;
+            var types = CreateTypeSpecifier3(tokenst);
+            if (types != null)
+            {
+                argTypes = types;
+            }
             LocalVariableTable.In();
             if (argTypes != null && tokenst.Get().Str=="(")
             {
@@ -1140,17 +1168,17 @@ namespace D_Sharp
         //クラス名
         static Type CreateNetClassType(TokenStream tokenst) {
             var checkPoint = tokenst.NowIndex;
-            string _namespace="";
+            //string _namespace="";
             string className = "";
             string tempName = "";
             if (tokenst.Get().TokenType == TokenType.Identifier)
             {
                 className = tokenst.Get().Str;
-                _namespace = className;
+               // _namespace = className;
                 tokenst.Next();
                 while (tokenst.Get().Str =="@" )
                 {
-                   if(tempName!="") _namespace +="."+ tempName;
+                 //  if(tempName!="") _namespace +="."+ tempName;
                     tokenst.Next();
                     if (tokenst.Get().TokenType != TokenType.Identifier)
                     {
@@ -1161,10 +1189,10 @@ namespace D_Sharp
                     tempName= tokenst.Get().Str;
                     tokenst.Next();
                 }
-                string assemblyName = ImportTable.GetImport(_namespace);
+            /*    string assemblyName = ImportTable.GetImport(_namespace);
                 if (assemblyName != null)
-                    className += "," + assemblyName;
-                return Type.GetType(className);
+                    className += "," + assemblyName;*/
+                return AssemblyTable.GetClassType(className);
             }
             tokenst.Rollback(checkPoint);
             return null;

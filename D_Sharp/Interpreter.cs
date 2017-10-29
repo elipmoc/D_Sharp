@@ -11,9 +11,8 @@ namespace D_Sharp
     {
         static public void ReadLine(string str)
         {
-           // try
+            // try
             //{
-
                 var tokenStream = LexicalAnalyzer.Lexicalanalysis(str.Remove(str.Count() - 1, 1));
                 if (tokenStream == null)
                 {
@@ -22,7 +21,7 @@ namespace D_Sharp
                 }
 
                 //デバッグ用
-            /*   for (int i = 0; i < tokenStream.Size; i++)
+              /* for (int i = 0; i < tokenStream.Size; i++)
                     tokenStream[i].DebugPrint();*/
 
 

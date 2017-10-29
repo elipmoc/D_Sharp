@@ -9,22 +9,25 @@ using System.IO;
 
 namespace D_Sharp
 {
-    class C
+    namespace test
     {
-        public void Do() { Console.WriteLine("aaaa"); }
-    }
+        class C
+        {
+            public void Do() { Console.WriteLine("aaaa"); }
+        }
 
-    class B
-    {
-        public C c = new C();
-        public C GetC() { return c; }
-    }
+        class B
+        {
+            public C c = new C();
+            public C GetC() { return c; }
+        }
 
-    class A
-    {
-        
-        public B b = new B();
-        public B GetB() { return b; }
+        class A
+        {
+
+            public B b = new B();
+            public B GetB() { return b; }
+        }
     }
 
     class Program
@@ -65,7 +68,11 @@ namespace D_Sharp
             ;
 
         条件演算子　
-            :等しい演算子,["?",式,":",式]
+            :バインド,["?",式,":",式]
+            ;
+
+        バインド
+            :等しい演算子 { ">>=" 等しい演算子} 
             ;
 
         等しい演算子
@@ -132,7 +139,7 @@ namespace D_Sharp
 
 
         ラムダ定義
-            :"(",引数定義,")","{",式,"}"
+            :[型指定子3],"(",引数定義,")","{",式,"}"
             ;
 
         組み込み関数呼び出し
@@ -188,6 +195,10 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+          /*  var asm=System.Reflection.Assembly.LoadFrom(
+                @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\mscorlib.dll");
+                Console.WriteLine(asm.GetType("System.Console"));
+            return;*/
             var a=new System.Windows.Forms.Form();
             var label = new System.Windows.Forms.Label();
             label.Text = "HelloWorld";
@@ -201,7 +212,6 @@ namespace D_Sharp
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding =Encoding.Unicode;
             Console.Clear();
-
             //ファイルからプログラム読み込み
             StreamReader sr =
                 new StreamReader("main.ds", Encoding.GetEncoding("Shift_JIS"));
