@@ -606,12 +606,29 @@ namespace D_Sharp
                         if (tokenst.Get().Str == "..")
                         {
                             tokenst.Next();
-                            var methodInfo=
-                                SelectMethod.Select
-                                    (typeof(MakeNumericalSequenceList), "MakeInfinityList", BindingFlags.Public | BindingFlags.Static, new Type[] { beginExpr.Type, secondExpr.Type });
-                            if (methodInfo != null)
+                            if (tokenst.Get().Str != "]")
                             {
-                                return Expression.Call(methodInfo, beginExpr, Expression.Subtract(secondExpr,beginExpr));
+                                var endExpr = CreateSiki(tokenst, new[] { type });
+                                if (endExpr != null)
+                                {
+                                    var methodInfo =
+                                    SelectMethod.Select
+                                        (typeof(MakeNumericalSequenceList), "MakeRangeList", BindingFlags.Public | BindingFlags.Static, new Type[] { beginExpr.Type, secondExpr.Type,endExpr.Type });
+                                    if (methodInfo != null)
+                                    {
+                                        return Expression.Call(methodInfo, beginExpr, Expression.Subtract(secondExpr, beginExpr),endExpr);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var methodInfo =
+                                    SelectMethod.Select
+                                        (typeof(MakeNumericalSequenceList), "MakeInfinityList", BindingFlags.Public | BindingFlags.Static, new Type[] { beginExpr.Type, secondExpr.Type });
+                                if (methodInfo != null)
+                                {
+                                    return Expression.Call(methodInfo, beginExpr, Expression.Subtract(secondExpr, beginExpr));
+                                }
                             }
                         }
                     }
