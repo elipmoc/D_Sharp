@@ -48,7 +48,7 @@ namespace D_Sharp
             ;
 
         import
-            : "import" ,文字列,文字列
+            : "import" ,文字列
             ;
 
         式
@@ -195,10 +195,6 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
-          /*  var asm=System.Reflection.Assembly.LoadFrom(
-                @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\mscorlib.dll");
-                Console.WriteLine(asm.GetType("System.Console"));
-            return;*/
             var a=new System.Windows.Forms.Form();
             var label = new System.Windows.Forms.Label();
             label.Text = "HelloWorld";

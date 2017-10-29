@@ -48,7 +48,6 @@
     <Compile Include="AssemblyTable.cs" />
     <Compile Include="built_in_functions.cs" />
     <Compile Include="CreateTree.cs" />
-    <Compile Include="ImportTable.cs" />
     <Compile Include="Interpreter.cs" />
     <Compile Include="IO.cs" />
     <Compile Include="LexicalAnalyzer.cs" />

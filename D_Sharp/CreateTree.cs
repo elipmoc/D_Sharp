@@ -179,6 +179,7 @@ namespace D_Sharp
             tokenst.Rollback(checkPoint);
             return null;
         }
+
         //Netクラスnew
         static Expression CreateNetClassNew(TokenStream tokenst,Type[] argTypes)
         {
