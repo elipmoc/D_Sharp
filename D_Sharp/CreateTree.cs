@@ -216,7 +216,9 @@ namespace D_Sharp
                             if (constructorInfo != null)
                             {
                                 var paramT = constructorInfo.GetParameters().Select(param => param.ParameterType).ToArray();
-                                return Expression.New(constructorInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
+                                return　IOWrapExpr.Wrap( 
+                                    Expression.New(constructorInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])))
+                                );
                             }
                         }
                     }
@@ -894,10 +896,10 @@ namespace D_Sharp
                             tokenst.Rollback(checkPoint);
                             return null;
                         }
-                        return Expression.Assign(Expression.PropertyOrField(expr, propertyOrFieldName),expr2);
+                        return IOWrapExpr.Wrap( Expression.Assign(Expression.PropertyOrField(expr, propertyOrFieldName),expr2));
                     }
                     else
-                        return Expression.PropertyOrField(expr, propertyOrFieldName);
+                        return IOWrapExpr.Wrap( Expression.PropertyOrField(expr, propertyOrFieldName));
             }
             tokenst.Rollback(checkPoint);
             return null;
