@@ -52,9 +52,22 @@ namespace D_Sharp
             if (CreateImport(tokenst) == false)
             {
                 body = CreateSiki(tokenst);
-                if (body == null)
+                if (body != null)
+                {
+                    if (
+                        body.Type.IsGenericType &&
+                        body.Type.GetGenericTypeDefinition() == typeof(IO<>))
+                    {
+                        var methodInfo = body.Type.GetMethod("Get");
+                        body = Expression.Call(body, methodInfo);
+                    }
+                    else return null;
+                }
+                else
+                {
                     if ((body = CreateGlobalVariableDecl(tokenst)) == null)
                         return null;
+                }
                 if (tokenst.NowIndex < tokenst.Size)
                     return null;
             }
