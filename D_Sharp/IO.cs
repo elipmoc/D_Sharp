@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace D_Sharp
 {
@@ -20,6 +21,17 @@ namespace D_Sharp
         public OUT Get()
         {
             return action();
+        }
+    }
+
+    class IOWrapExpr
+    {
+        static public Expression Wrap(Expression expr)
+        {
+            var ioConstructorInfo=
+                typeof(IO<>).MakeGenericType(expr.Type).
+                    GetConstructor(new Type[] { Expression.GetDelegateType(expr.Type)}) ;
+            return Expression.New(ioConstructorInfo,Expression.Lambda(expr));
         }
     }
 }

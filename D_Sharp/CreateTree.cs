@@ -690,14 +690,14 @@ namespace D_Sharp
                                     {
                                        var paramT= methodInfo.GetParameters().Select(param=>param.ParameterType).ToArray();
                                         tokenst.Next();
-                                        var callExpr=Expression.Call(methodInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
+                                        Expression callExpr=Expression.Call(methodInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
 
                                         if (methodInfo.ReturnType == typeof(void))
-                                                return Expression.Block(
+                                                callExpr= Expression.Block(
                                                     callExpr
                                                     ,Expression.Constant(new Unit())
                                                 );
-                                        return callExpr;
+                                        return IOWrapExpr.Wrap(callExpr);
                                     }
                                 }
                             }

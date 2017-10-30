@@ -244,9 +244,6 @@ namespace D_Sharp
                         break;
                 }
                 Interpreter.ReadLine(str);
-
-
-
             }
         }
     }
