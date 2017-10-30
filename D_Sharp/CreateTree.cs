@@ -335,11 +335,15 @@ namespace D_Sharp
             Expression left;
             if ((left = CreateHitosi(tokenst, argTypes)) != null)
             {
+
                 Expression right;
                 while (tokenst.NowIndex < tokenst.Size && (
                     tokenst.Get().Str == ">>="
-                    ))
+                    ) && left.Type.IsGenericType &&
+                            left.Type.GetGenericTypeDefinition() == typeof(IO<>))
                 {
+                    var methodInfo = left.Type.GetMethod("Get");
+                    left = Expression.Call(left, methodInfo);
                     tokenst.Next();
                     if ((right = CreateHitosi(tokenst, argTypes)) == null)
                     {
@@ -347,9 +351,11 @@ namespace D_Sharp
                         return null;
                     }
                     left =
-                         Expression.Invoke(right,left);
+                         IOWrapExpr.Wrap( Expression.Invoke(right, left));
                 }
+
                 return left;
+
             }
             tokenst.Rollback(checkPoint);
             return null;
@@ -1193,7 +1199,7 @@ namespace D_Sharp
                 className = tokenst.Get().Str;
                // _namespace = className;
                 tokenst.Next();
-                while (tokenst.Get().Str =="@" )
+                while (tokenst.NowIndex<tokenst.Size-1 && tokenst.Get().Str =="@" )
                 {
                  //  if(tempName!="") _namespace +="."+ tempName;
                     tokenst.Next();

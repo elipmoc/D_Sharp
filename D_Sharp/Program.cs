@@ -167,7 +167,7 @@ namespace D_Sharp
             ; 
            
         型指定子2
-            :( 型種類 | "[", 型指定子 , "]" ) ,{ "[" , "]" }
+            :( (型種類|クラス名|IO型) | "[", 型指定子 , "]" ) ,{ "[" , "]" }
             ;
 
         型指定子
@@ -180,6 +180,10 @@ namespace D_Sharp
 
         クラス名
             :識別子 , { "@" , 識別子}
+            ;
+
+        IO型
+            : "IO" , "<" , 型指定子 , ">"
             ;
 
             Net関数のオーバーロード選択法則
@@ -195,6 +199,7 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+           Action<int> gg = System.Console.WriteLine;
             var a=new System.Windows.Forms.Form();
             var label = new System.Windows.Forms.Label();
             label.Text = "HelloWorld";
