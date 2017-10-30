@@ -1101,11 +1101,11 @@ namespace D_Sharp
                     {
                         tokenst.Next();
                         if (types.Count() == 1)
-                            type= types[0];
+                            type = types[0];
                         else if (types[0] == typeof(void))
-                            type= Expression.GetDelegateType(types.Skip(1).ToArray());
+                            type = Expression.GetDelegateType(types.Skip(1).ToArray());
                         else
-                            type= Expression.GetDelegateType(types);
+                            type = Expression.GetDelegateType(types);
                     }
                 }
             }
@@ -1114,6 +1114,7 @@ namespace D_Sharp
             {
                 tokenst.Next();
             }
+            else type = CreateNetClassType(tokenst);
             if (type != null)
             {
                 while (true)
