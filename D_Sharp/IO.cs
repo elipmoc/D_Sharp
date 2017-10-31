@@ -24,8 +24,16 @@ namespace D_Sharp
         }
     }
 
-    class IOMakeExpr
+    static class IOHelper
     {
+        static public IO<Unit> GetMempty() { return new IO<Unit>(() => new Unit()); }
+    }
+
+    static class IOMakeExpr
+    {
+
+        
+
         //式をIOで包む
         static public Expression Wrap(Expression expr)
         {

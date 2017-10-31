@@ -15,33 +15,29 @@ namespace D_Sharp
     //組み込み関数
     static class built_in_functions
     {
-        static public char[] scanf()
+        static public IO<IEnumerable<char>> scanf()
         {
-           return Console.ReadLine().ToArray();
+           return new IO<IEnumerable<char>>(()=> Console.ReadLine());
         }
 
-        static public double random()
+        static public IO<Unit> print<T>(T t)
         {
-            return new System.Random().NextDouble();
-        }
-
-        static public Unit Test<T>(IEnumerable<T> i)
-        {
-            foreach (var item in i)
-                Console.WriteLine(item);
-            return new Unit();
-        }
-
-        static public T print<T>(T t)
-        {
-            Console.WriteLine(t);
-            return t;
+            return
+               new IO<Unit>(() =>
+               {
+                   Console.WriteLine(t);
+                   return new Unit();
+               });
         }
 
         static public IO<Unit> printtype<T>(T t)
         {
-            print(typeof(T));
-            return new IO<Unit>(() => new Unit());
+            return
+               new IO<Unit>(() =>
+               {
+                   print(typeof(T));
+                   return new Unit();
+               });
         }
 
         static public Unit tounit<T>(T t)
@@ -119,33 +115,41 @@ namespace D_Sharp
         }
 
         //配列表示
-        static public IEnumerable<T> printlist<T>(IEnumerable<T> t)
+        static public IO<Unit> printlist<T>(IEnumerable<T> t)
         {
-            Console.Write("[");
-            bool flag=false;
-            foreach(var item in t)
-            {
-                if (flag == true)
-                    Console.Write(",");
-                else
-                    flag = true;
+            return
+                new IO<Unit>(() =>
+                {
+                    Console.Write("[");
+                    bool flag = false;
+                    foreach (var item in t)
+                    {
+                        if (flag == true)
+                            Console.Write(",");
+                        else
+                            flag = true;
 
-                Console.Write(item);
-            }
-            Console.WriteLine("]");
-            return t;
+                        Console.Write(item);
+                    }
+                    Console.WriteLine("]");
+                    return new Unit();
+                });
         }
 
         //文字列表示
-        static public IEnumerable<char> printstr(IEnumerable<char> t)
+        static public IO<Unit> printstr(IEnumerable<char> t)
         {
-            string str="";
-            foreach (var item in t)
-            {
-                str += item;
-            }
-            print(str);
-            return t;
+            return
+               new IO<Unit>(() =>
+               {
+                   string str = "";
+                   foreach (var item in t)
+                   {
+                       str += item;
+                   }
+                   print(str);
+                   return new Unit();
+               });
         }
     }
 }
