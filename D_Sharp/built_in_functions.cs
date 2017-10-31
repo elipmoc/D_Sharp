@@ -38,10 +38,10 @@ namespace D_Sharp
             return t;
         }
 
-        static public T printtype<T>(T t)
+        static public IO<Unit> printtype<T>(T t)
         {
             print(typeof(T));
-            return t;
+            return new IO<Unit>(() => new Unit());
         }
 
         static public Unit tounit<T>(T t)

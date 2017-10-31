@@ -54,14 +54,9 @@ namespace D_Sharp
                 body = CreateSiki(tokenst);
                 if (body != null)
                 {
-                    if (
-                        body.Type.IsGenericType &&
-                        body.Type.GetGenericTypeDefinition() == typeof(IO<>))
-                    {
-                        var methodInfo = body.Type.GetMethod("Get");
-                        body = Expression.Call(body, methodInfo);
-                    }
-                    else return null;
+                    body = IOMakeExpr.DoIO(body);
+                    if (body==null)
+                        return null;
                 }
                 else
                 {
@@ -216,7 +211,7 @@ namespace D_Sharp
                             if (constructorInfo != null)
                             {
                                 var paramT = constructorInfo.GetParameters().Select(param => param.ParameterType).ToArray();
-                                return　IOWrapExpr.Wrap( 
+                                return　IOMakeExpr.Wrap( 
                                     Expression.New(constructorInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])))
                                 );
                             }
@@ -339,11 +334,13 @@ namespace D_Sharp
                 Expression right;
                 while (tokenst.NowIndex < tokenst.Size && (
                     tokenst.Get().Str == ">>="
-                    ) && left.Type.IsGenericType &&
-                            left.Type.GetGenericTypeDefinition() == typeof(IO<>))
+                    ) )
                 {
-                    var methodInfo = left.Type.GetMethod("Get");
-                    left = Expression.Call(left, methodInfo);
+                    if ((left = IOMakeExpr.DoIO(left)) == null)
+                    {
+                        tokenst.Rollback(checkPoint);
+                        return null;
+                    }
                     tokenst.Next();
                     if ((right = CreateHitosi(tokenst, argTypes)) == null)
                     {
@@ -351,7 +348,7 @@ namespace D_Sharp
                         return null;
                     }
                     left =
-                         IOWrapExpr.Wrap( Expression.Invoke(right, left));
+                         IOMakeExpr.Wrap( IOMakeExpr.DoIO( Expression.Invoke(right, left)));
                 }
 
                 return left;
@@ -718,7 +715,7 @@ namespace D_Sharp
                                                     callExpr
                                                     ,Expression.Constant(new Unit())
                                                 );
-                                        return IOWrapExpr.Wrap(callExpr);
+                                        return IOMakeExpr.Wrap(callExpr);
                                     }
                                 }
                             }
@@ -902,10 +899,10 @@ namespace D_Sharp
                             tokenst.Rollback(checkPoint);
                             return null;
                         }
-                        return IOWrapExpr.Wrap( Expression.Assign(Expression.PropertyOrField(expr, propertyOrFieldName),expr2));
+                        return IOMakeExpr.Wrap( Expression.Assign(Expression.PropertyOrField(expr, propertyOrFieldName),expr2));
                     }
                     else
-                        return IOWrapExpr.Wrap( Expression.PropertyOrField(expr, propertyOrFieldName));
+                        return IOMakeExpr.Wrap( Expression.PropertyOrField(expr, propertyOrFieldName));
             }
             tokenst.Rollback(checkPoint);
             return null;

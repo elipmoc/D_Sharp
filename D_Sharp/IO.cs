@@ -24,8 +24,9 @@ namespace D_Sharp
         }
     }
 
-    class IOWrapExpr
+    class IOMakeExpr
     {
+        //式をIOで包む
         static public Expression Wrap(Expression expr)
         {
             var ioConstructorInfo=
@@ -33,5 +34,19 @@ namespace D_Sharp
                     GetConstructor(new Type[] { Expression.GetDelegateType(expr.Type)}) ;
             return Expression.New(ioConstructorInfo,Expression.Lambda(expr));
         }
+
+        //IO型を実行する
+        static public Expression DoIO(Expression expr)
+        {
+            if (expr.Type.IsGenericType &&
+               expr.Type.GetGenericTypeDefinition() == typeof(IO<>))
+            {
+                var methodInfo = expr.Type.GetMethod("Get");
+                return Expression.Call(expr, methodInfo);
+            }
+            return null;
+        }
+
+
     }
 }
