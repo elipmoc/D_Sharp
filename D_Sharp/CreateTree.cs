@@ -1059,7 +1059,7 @@ namespace D_Sharp
             Type type;
             if ((type=CreateTypeSpecifier2(tokenst)) != null)
             {
-                if (tokenst.Get().Str == "::" || tokenst.Get().Str == "]" || tokenst.Get().Str=="[")
+                if (tokenst.Get().Str==">" ||tokenst.Get().Str == "::" || tokenst.Get().Str == "]" || tokenst.Get().Str=="[")
                 {
                     return new[] { type };
                 }
@@ -1120,7 +1120,8 @@ namespace D_Sharp
             {
                 tokenst.Next();
             }
-            else type = CreateNetClassType(tokenst);
+            else if ((type = CreateNetClassType(tokenst)) != null) ;
+            else type = CreateIOType(tokenst);
             if (type != null)
             {
                 while (true)
@@ -1188,6 +1189,27 @@ namespace D_Sharp
             return null;
         }
 
+        //IO型
+        static Type CreateIOType(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().Str == "IO")
+            {
+                tokenst.Next();
+                if (tokenst.Get().Str == "<")
+                {
+                    tokenst.Next();
+                    var type = CreateTypeSpecifier(tokenst);
+                    if(type!=null && tokenst.Get().Str == ">") {
+                        tokenst.Next();
+                      return  typeof(IO<>).MakeGenericType(type);
+                    }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
         //クラス名
         static Type CreateNetClassType(TokenStream tokenst) {
             var checkPoint = tokenst.NowIndex;
@@ -1215,7 +1237,9 @@ namespace D_Sharp
             /*    string assemblyName = ImportTable.GetImport(_namespace);
                 if (assemblyName != null)
                     className += "," + assemblyName;*/
-                return AssemblyTable.GetClassType(className);
+                var classType = AssemblyTable.GetClassType(className);
+                if (classType != null)
+                    return classType;
             }
             tokenst.Rollback(checkPoint);
             return null;
