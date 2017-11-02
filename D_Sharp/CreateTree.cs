@@ -188,6 +188,19 @@ namespace D_Sharp
             return null;
         }
 
+        //do構文
+        static Expression CreateDoSyntax(TokenStream tokenst,Type[] argTypes)
+        {
+            var checkPoint=tokenst.NowIndex;
+            var expr=CreateNetClassNew(tokenst,argTypes);
+            if (expr != null)
+            {
+                return expr;
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
         //Netクラスnew
         static Expression CreateNetClassNew(TokenStream tokenst,Type[] argTypes)
         {
