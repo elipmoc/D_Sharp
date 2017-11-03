@@ -207,6 +207,8 @@ namespace D_Sharp
                 List<Expression> exprList = new List<Expression>();
                 tokenst.Next();
                 expr = CreateSiki(tokenst);
+                if (expr == null)
+                    expr = CreateVariableBind(tokenst);
                 while (expr != null)
                 {
                     expr=IOMakeExpr.DoIO(expr);
@@ -217,11 +219,14 @@ namespace D_Sharp
                     }
                     exprList.Add(expr);
                     expr = CreateSiki(tokenst);
+                    if (expr == null)
+                        expr = CreateVariableBind(tokenst);
                 }
                 if (errorFlag == false)
                 {
+                    expr=IOMakeExpr.Wrap( Expression.Block(LocalVariableTable.GetNowNestParamList(),exprList));
                     LocalVariableTable.Out();
-                    return IOMakeExpr.Wrap( Expression.Block(exprList));
+                    return expr;
                 }
                 LocalVariableTable.Out();
             }
@@ -235,7 +240,7 @@ namespace D_Sharp
         static Expression CreateVariableBind(TokenStream tokenst)
         {
             var checkPoint = tokenst.NowIndex;
-            if (tokenst.Get().TokenType == TokenType.Identifier)
+            if (tokenst.NowIndex<tokenst.Size && tokenst.Get().TokenType == TokenType.Identifier)
             {
                 string variableName=tokenst.Get().Str;
                 if (LocalVariableTable.FindNowNest(variableName)==null)
@@ -256,7 +261,7 @@ namespace D_Sharp
                                 {
                                     var param=Expression.Parameter(expr.Type);
                                     LocalVariableTable.Register(variableName,param);
-                                    return Expression.Assign(param, expr);
+                                    return IOMakeExpr.Wrap(Expression.Assign(param, expr));
                                 }
                             }
                         }
@@ -946,11 +951,11 @@ namespace D_Sharp
                             var paramT = methodInfo.GetParameters().Select(param => param.ParameterType).ToArray();
                             expr = Expression.Call(expr, methodInfo, args.Select((arg, i) => Expression.Convert(arg, paramT[i])));
                             if (methodInfo.ReturnType == typeof(void))
-                                return Expression.Block(
+                                expr= Expression.Block(
                                     expr
                                     , Expression.Constant(new Unit())
                                 );
-                            return expr;
+                            return IOMakeExpr.Wrap( expr);
                         }
                     }
                 }

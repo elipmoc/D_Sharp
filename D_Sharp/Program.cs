@@ -214,7 +214,7 @@ namespace D_Sharp
             label.Size = new System.Drawing.Size(170,60);
             label.Font = new System.Drawing.Font("Arial", 20, System.Drawing.FontStyle.Bold);
             a.Controls.Add(label);
-          // System.Windows.Forms.Application.Run(a);
+           //System.Windows.Forms.Application.Run(a);
             //import "System.Windows.Forms" "Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b77a5c561934e089"
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
