@@ -35,7 +35,7 @@ namespace D_Sharp
             return
                new IO<Unit>(() =>
                {
-                   print(typeof(T));
+                   print(typeof(T)).Get();
                    return new Unit();
                });
         }
