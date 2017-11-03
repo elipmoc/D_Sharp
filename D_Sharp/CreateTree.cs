@@ -180,9 +180,11 @@ namespace D_Sharp
         //式
         static Expression CreateSiki(TokenStream tokenst, Type[] argTypes=null)
         {
+            if (tokenst.NowIndex >= tokenst.Size)
+                return null;
             var checkPoint = tokenst.NowIndex;
             Expression expr;
-            if ((expr = CreateNetClassNew(tokenst,argTypes)) != null)
+            if ((expr = CreateDoSyntax(tokenst,argTypes)) != null)
                 return expr;
             tokenst.Rollback(checkPoint);
             return null;
@@ -197,6 +199,30 @@ namespace D_Sharp
             {
                 return expr;
             }
+
+            if (tokenst.Get().Str == "do")
+            {
+                bool errorFlag = false;
+                tokenst.Next();
+                expr = CreateSiki(tokenst);
+                List<Expression> exprList = new List<Expression>();
+                while (expr != null)
+                {
+                    expr=IOMakeExpr.DoIO(expr);
+                    if (expr == null)
+                    {
+                        errorFlag = true;
+                        break;
+                    }
+                    exprList.Add(expr);
+                    expr = CreateSiki(tokenst);
+                }
+                if (errorFlag == false)
+                {
+                    return Expression.Lambda(IOMakeExpr.Wrap( Expression.Block(exprList)));
+                }
+            }
+
             tokenst.Rollback(checkPoint);
             return null;
         }
