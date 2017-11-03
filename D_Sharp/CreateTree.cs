@@ -202,10 +202,11 @@ namespace D_Sharp
 
             if (tokenst.Get().Str == "do")
             {
+                LocalVariableTable.In();
                 bool errorFlag = false;
+                List<Expression> exprList = new List<Expression>();
                 tokenst.Next();
                 expr = CreateSiki(tokenst);
-                List<Expression> exprList = new List<Expression>();
                 while (expr != null)
                 {
                     expr=IOMakeExpr.DoIO(expr);
@@ -219,7 +220,47 @@ namespace D_Sharp
                 }
                 if (errorFlag == false)
                 {
+                    LocalVariableTable.Out();
                     return IOMakeExpr.Wrap( Expression.Block(exprList));
+                }
+                LocalVariableTable.Out();
+            }
+
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+
+        //IOの変数束縛
+        static Expression CreateVariableBind(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().TokenType == TokenType.Identifier)
+            {
+                string variableName=tokenst.Get().Str;
+                if (LocalVariableTable.FindNowNest(variableName)==null)
+                {
+                  
+                    tokenst.Next();
+                    if (tokenst.Get().Str == "<")
+                    {
+                        tokenst.Next();
+                        if (tokenst.Get().Str == "-")
+                        {
+                            tokenst.Next();
+                            var expr = CreateSiki(tokenst);
+                            if (expr != null)
+                            {
+                                expr = IOMakeExpr.DoIO(expr);
+                                if (expr != null)
+                                {
+                                    var param=Expression.Parameter(expr.Type);
+                                    LocalVariableTable.Register(variableName,param);
+                                    return Expression.Assign(param, expr);
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
