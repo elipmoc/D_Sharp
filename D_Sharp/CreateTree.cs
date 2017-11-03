@@ -219,7 +219,7 @@ namespace D_Sharp
                 }
                 if (errorFlag == false)
                 {
-                    return Expression.Lambda(IOMakeExpr.Wrap( Expression.Block(exprList)));
+                    return IOMakeExpr.Wrap( Expression.Block(exprList));
                 }
             }
 
