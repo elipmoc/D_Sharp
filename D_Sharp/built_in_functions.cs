@@ -45,10 +45,10 @@ namespace D_Sharp
             return new Unit();
         }
 
-        static public char[] tostring<T>(T t)
+        static public string tostring<T>(T t)
         {
             
-            return t.ToString().ToArray();
+            return t.ToString();
         }
 
         //配列添え字アクセス

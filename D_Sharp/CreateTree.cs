@@ -575,6 +575,11 @@ namespace D_Sharp
             {
                 return expr;
             }
+            //returnアクション
+            else if ((expr = CreateReturn(tokenst,argTypes)) != null)
+            {
+                return expr;
+            }
             //組み込み関数呼び出し
             else if ((expr = CreateFunctionCall(tokenst)) != null)
             {
@@ -644,10 +649,11 @@ namespace D_Sharp
             {
                 string str=tokenst.Get().Str;
                 Expression expr;
-                if (str.Length == 0)
-                    expr = Expression.NewArrayInit(typeof(char), Expression.Constant(""));
-                else
-                    expr = Expression.NewArrayInit(typeof(char), str.Take(str.Length - 1).Skip(1).Select(x => Expression.Constant(x)));
+                /* if (str.Length == 0)
+                     expr = Expression.NewArrayInit(typeof(char), Expression.Constant(""));
+                 else
+                     expr = Expression.NewArrayInit(typeof(char), str.Take(str.Length - 1).Skip(1).Select(x => Expression.Constant(x)));*/
+                expr = Expression.Constant(str);
                 tokenst.Next();
                 return expr;
             }
@@ -806,6 +812,25 @@ namespace D_Sharp
                             }
                         }
                     }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //returnアクション
+        static Expression CreateReturn(TokenStream tokenst,Type[] argTypes)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().Str == "return")
+            {
+                tokenst.Next();
+                if (tokenst.NowIndex < tokenst.Size)
+                {
+                    var expr = CreateSiki(tokenst, argTypes);
+                    expr = IOMakeExpr.Wrap(expr);
+                    if (expr != null)
+                        return expr;
                 }
             }
             tokenst.Rollback(checkPoint);
@@ -1265,6 +1290,8 @@ namespace D_Sharp
                     return typeof(char);
                 case "void":
                     return typeof(void);
+                case "string":
+                    return typeof(string);
                 case "unit":
                     return typeof(Unit);
             }

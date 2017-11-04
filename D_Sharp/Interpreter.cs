@@ -9,10 +9,11 @@ namespace D_Sharp
     //インタプリター
     class Interpreter
     {
+
         static public void ReadLine(string str)
         {
-            // try
-            //{
+             try
+            {
                 var tokenStream = LexicalAnalyzer.Lexicalanalysis(str.Remove(str.Count() - 1, 1));
                 if (tokenStream == null)
                 {
@@ -32,12 +33,12 @@ namespace D_Sharp
                     return;
                 }
                 func();
-            /*}
+            }
             catch (Exception except)
             {
                 Console.WriteLine(except.Message);
                 return;
-            }*/
+            }
         }
     }
 }
