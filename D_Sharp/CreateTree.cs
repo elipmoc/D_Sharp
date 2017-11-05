@@ -653,7 +653,7 @@ namespace D_Sharp
                      expr = Expression.NewArrayInit(typeof(char), Expression.Constant(""));
                  else
                      expr = Expression.NewArrayInit(typeof(char), str.Take(str.Length - 1).Skip(1).Select(x => Expression.Constant(x)));*/
-                expr = Expression.Constant(str);
+                expr = Expression.Constant(new string(str.Take(str.Length - 1).Skip(1).ToArray()));
                 tokenst.Next();
                 return expr;
             }
@@ -889,6 +889,12 @@ namespace D_Sharp
                         var fieldInfo = type.GetField(propertyName, BindingFlags.Public | BindingFlags.Static);
                         if (fieldInfo != null)
                             return Expression.Field(null,fieldInfo);
+                        else
+                        {
+                            var propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static);
+                            if(propertyInfo!=null)
+                                return Expression.Property(null, propertyInfo);
+                        }
                     }
                 }
             }
@@ -909,6 +915,11 @@ namespace D_Sharp
                 args.Add(expr);
                 while (tokenst.Get().Str==",")
                 {
+                    if(argTypes!=null && argsIndex >= argTypes.Length)
+                    {
+                        tokenst.Rollback(checkPoint);
+                        return null;
+                    }
                     tokenst.Next();
                     expr = CreateSiki(tokenst,argTypes == null ? null : new[] { argTypes[argsIndex++] });
                     if (expr == null)
