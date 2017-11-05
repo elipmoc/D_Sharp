@@ -211,44 +211,54 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
-           Action<int> gg = System.Console.WriteLine;
-            var a=new System.Windows.Forms.Form();
+            var a = new System.Windows.Forms.Form();
             var label = new System.Windows.Forms.Label();
             label.Text = "HelloWorld";
-            label.Size = new System.Drawing.Size(170,60);
+            label.Size = new System.Drawing.Size(170, 60);
             label.Font = new System.Drawing.Font("Arial", 20, System.Drawing.FontStyle.Bold);
             a.Controls.Add(label);
-           //System.Windows.Forms.Application.Run(a);
+            //System.Windows.Forms.Application.Run(a);
             //import "System.Windows.Forms" "Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b77a5c561934e089"
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.InputEncoding = Encoding.Unicode;
-            Console.OutputEncoding =Encoding.Unicode;
+            Console.OutputEncoding = Encoding.Unicode;
             Console.Clear();
             //ファイルからプログラム読み込み
-            StreamReader sr =
-                new StreamReader("main.ds", Encoding.GetEncoding("Shift_JIS"));
-
-            string line,buf;
-            while (true)
+            if (args.Length >= 1)
             {
-                line = "";
-                while ((buf = sr.ReadLine()) != null)
+                StreamReader sr;
+                try
                 {
-                    line += buf;
-                    Console.Write("!(^^)!　");
-                    Console.WriteLine(buf);
-
-                    if (line.Count()>0&&line[line.Count() - 1] == ';')
-                    {
-
-                        break;
-                    }
+                    sr =
+                        new StreamReader(args[0], Encoding.GetEncoding("Shift_JIS"));
                 }
-                if (buf == null) break;
-                Interpreter.ReadLine(line);
+                catch
+                {
+                    Console.WriteLine("ファイルが見つかりません");
+                    return;
+                }
+                string line, buf;
+                while (true)
+                {
+                    line = "";
+                    while ((buf = sr.ReadLine()) != null)
+                    {
+                        line += buf;
+                        Console.Write("!(^^)!　");
+                        Console.WriteLine(buf);
+
+                        if (line.Count() > 0 && line[line.Count() - 1] == ';')
+                        {
+
+                            break;
+                        }
+                    }
+                    if (buf == null) break;
+                    Interpreter.ReadLine(line);
+                }
+                sr.Close();
             }
-            sr.Close();
             string str;
             while (true)
             {
