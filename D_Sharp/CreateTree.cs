@@ -555,6 +555,11 @@ namespace D_Sharp
                 tokenst.Next();
                 return expr;
             }
+            //Unit値
+            else if ((expr = CreateUnit(tokenst)) != null)
+            {
+                return expr;
+            }
             //文字
             else if ((expr=CreateCharacter(tokenst)) != null)
             {
@@ -623,6 +628,23 @@ namespace D_Sharp
                         tokenst.Next();
                         return expr;
                     }
+                }
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
+        //unit値
+        static Expression CreateUnit(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().Str == "(")
+            {
+                tokenst.Next();
+                if (tokenst.Get().Str == ")")
+                {
+                    tokenst.Next();
+                    return Expression.Constant(new Unit());
                 }
             }
             tokenst.Rollback(checkPoint);
