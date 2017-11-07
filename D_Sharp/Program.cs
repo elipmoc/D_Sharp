@@ -211,6 +211,7 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+            
             var a = new System.Windows.Forms.Form();
             var label = new System.Windows.Forms.Label();
             label.Text = "HelloWorld";
@@ -231,8 +232,6 @@ namespace D_Sharp
                 StreamReader sr;
                 try
                 {
-                    
-                    Console.WriteLine(Encoding.Default);
                     sr =
                         new StreamReader(/*args[0]*/"FileReader.ds", Encoding.GetEncoding("Shift_JIS"));
                 }
