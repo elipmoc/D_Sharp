@@ -40,11 +40,6 @@ namespace D_Sharp
                });
         }
 
-        static public Unit tounit<T>(T t)
-        {
-            return new Unit();
-        }
-
         static public string tostring<T>(T t)
         {
             
