@@ -234,14 +234,14 @@ namespace D_Sharp
             Console.OutputEncoding = Encoding.Unicode;
             Console.Clear();
             //ファイルからプログラム読み込み
-            if (args.Length >= 0)
+            if (args.Length >= 1)
             {
 
                 StreamReader sr;
                 try
                 {
                     sr =
-                        new StreamReader(/*args[0]*/"FileReader.ds", Encoding.GetEncoding("Shift_JIS"));
+                        new StreamReader(args[0], Encoding.GetEncoding("Shift_JIS"));
                 }
                 catch
                 {

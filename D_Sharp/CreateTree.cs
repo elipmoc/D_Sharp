@@ -555,6 +555,11 @@ namespace D_Sharp
                 tokenst.Next();
                 return expr;
             }
+            //ラムダ定義
+            else if ((expr = CreateLambdaDefinition(tokenst, argTypes)) != null)
+            {
+                return expr;
+            }
             //Unit値
             else if ((expr = CreateUnit(tokenst)) != null)
             {
@@ -617,11 +622,7 @@ namespace D_Sharp
                 tokenst.Next();
                 return expr;
             }
-            //ラムダ定義
-            else if ((expr=CreateLambdaDefinition(tokenst,argTypes))!=null)
-            {
-                return expr;
-            }
+
             // ( 式 ) 
             else if (tokenst.Get().Str == "(")
             {
