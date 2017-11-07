@@ -560,6 +560,11 @@ namespace D_Sharp
             {
                 return expr;
             }
+            //Null値
+            else if ((expr = CreateNull(tokenst)) != null)
+            {
+                return expr;
+            }
             //文字
             else if ((expr=CreateCharacter(tokenst)) != null)
             {
@@ -651,6 +656,20 @@ namespace D_Sharp
             return null;
         }
 
+        //null値
+        static Expression CreateNull(TokenStream tokenst)
+        {
+            var checkPoint = tokenst.NowIndex;
+            if (tokenst.Get().Str == "null")
+            {
+                tokenst.Next();
+              
+                    return Expression.Constant(null);
+            }
+            tokenst.Rollback(checkPoint);
+            return null;
+        }
+
         //文字
         static Expression CreateCharacter(TokenStream tokenst)
         {
@@ -671,10 +690,6 @@ namespace D_Sharp
             {
                 string str=tokenst.Get().Str;
                 Expression expr;
-                /* if (str.Length == 0)
-                     expr = Expression.NewArrayInit(typeof(char), Expression.Constant(""));
-                 else
-                     expr = Expression.NewArrayInit(typeof(char), str.Take(str.Length - 1).Skip(1).Select(x => Expression.Constant(x)));*/
                 expr = Expression.Constant(new string(str.Take(str.Length - 1).Skip(1).ToArray()));
                 tokenst.Next();
                 return expr;
