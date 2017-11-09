@@ -211,6 +211,7 @@ namespace D_Sharp
                     expr = CreateVariableBind(tokenst);
                 while (expr != null)
                 {
+                    
                     expr=IOMakeExpr.DoIO(expr);
                     if (expr == null)
                     {
@@ -218,6 +219,11 @@ namespace D_Sharp
                         break;
                     }
                     exprList.Add(expr);
+                    if (tokenst.NowIndex < tokenst.Size && tokenst.Get().Str == ",")
+                    {
+                        tokenst.Next();
+                    }
+                    else break;
                     expr = CreateSiki(tokenst);
                     if (expr == null)
                         expr = CreateVariableBind(tokenst);
@@ -432,6 +438,7 @@ namespace D_Sharp
                         tokenst.Rollback(checkPoint);
                         return null;
                     }
+                    
                     left =
                          IOMakeExpr.Wrap( IOMakeExpr.DoIO( Expression.Invoke(right, left)));
                 }
@@ -774,7 +781,7 @@ namespace D_Sharp
                     tokenst.Next();
                     if ((secondExpr = CreateSiki(tokenst, new[] { type })) != null)
                     {
-                        if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str == "..")
+                        if (tokenst.NowIndex<tokenst.Size &&  tokenst.Get().Str == "..")
                         {
                             tokenst.Next();
                             if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str != "]")

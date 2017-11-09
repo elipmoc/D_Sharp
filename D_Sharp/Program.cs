@@ -56,7 +56,7 @@ namespace D_Sharp
             ;
 
         do構文
-            : Netクラスnew | ( "do" , ( 変数束縛 | 式 )+ )
+            : Netクラスnew | ( "do" , ( 変数束縛 , "," | 式 , "," )+ )
             ;
 
         変数束縛 
@@ -219,6 +219,7 @@ namespace D_Sharp
 
         static void Main(string[] args)
         {
+            System.Random r=new Random();
             
             var a = new System.Windows.Forms.Form();
             var label = new System.Windows.Forms.Label();
@@ -234,14 +235,14 @@ namespace D_Sharp
             Console.OutputEncoding = Encoding.Unicode;
             Console.Clear();
             //ファイルからプログラム読み込み
-            if (args.Length >= 1)
+            if (args.Length >= 0)
             {
 
                 StreamReader sr;
                 try
                 {
                     sr =
-                        new StreamReader(args[0], Encoding.GetEncoding("Shift_JIS"));
+                        new StreamReader(/*args[0]*/"jyanken.ds", Encoding.GetEncoding("Shift_JIS"));
                 }
                 catch
                 {

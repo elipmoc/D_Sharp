@@ -12,7 +12,7 @@ namespace D_Sharp
 
         static public void ReadLine(string str)
         {
-           //  try
+          //   try
            // {
                 var tokenStream = LexicalAnalyzer.Lexicalanalysis(str.Remove(str.Count() - 1, 1));
                 if (tokenStream == null)
