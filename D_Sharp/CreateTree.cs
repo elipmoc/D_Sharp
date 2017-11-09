@@ -487,7 +487,7 @@ namespace D_Sharp
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateKou(tokenst, argTypes)) == null)
+                    if (tokenst.NowIndex>=tokenst.Size || (right = CreateKou(tokenst, argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;
@@ -520,7 +520,7 @@ namespace D_Sharp
                 {
                     op = tokenst.Get().Str;
                     tokenst.Next();
-                    if ((right = CreateNetClassAccess(tokenst,argTypes)) == null)
+                    if (tokenst.NowIndex >= tokenst.Size || (right = CreateNetClassAccess(tokenst,argTypes)) == null)
                     {
                         tokenst.Rollback(checkPoint);
                         return null;

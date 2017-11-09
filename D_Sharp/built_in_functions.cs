@@ -15,9 +15,9 @@ namespace D_Sharp
     //組み込み関数
     static class built_in_functions
     {
-        static public IO<IEnumerable<char>> scanf()
+        static public IO<string> scanf()
         {
-           return new IO<IEnumerable<char>>(()=> Console.ReadLine());
+           return new IO<string>(()=> Console.ReadLine());
         }
 
         static public IO<Unit> print<T>(T t)
@@ -142,7 +142,7 @@ namespace D_Sharp
                    {
                        str += item;
                    }
-                   print(str);
+                   print(str).Get();
                    return new Unit();
                });
         }
