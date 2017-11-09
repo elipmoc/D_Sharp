@@ -75,7 +75,7 @@ namespace D_Sharp
         static bool CreateImport(TokenStream tokenst)
         {
             var checkPoint = tokenst.NowIndex;
-            if (tokenst.Get().Str == "import")
+            if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str == "import")
             {
                 tokenst.Next();
                 if (tokenst.Get().TokenType == TokenType.String)
@@ -99,7 +99,7 @@ namespace D_Sharp
             Type[] types;
             types = CreateTypeSpecifier3(tokenst);
             string variableName;
-            if (tokenst.Get().TokenType == TokenType.Identifier)
+            if (tokenst.NowIndex<tokenst.Size && tokenst.Get().TokenType == TokenType.Identifier)
             {
                 variableName = tokenst.Get().Str;
                 if (VariableTable.Find(variableName) == false)
@@ -115,7 +115,7 @@ namespace D_Sharp
                     }
 
                     tokenst.Next();
-                    if (tokenst.Get().Str == "=")
+                    if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str == "=")
                     {
                         tokenst.Next();
                         var expr = CreateSiki(tokenst, types);
@@ -717,7 +717,7 @@ namespace D_Sharp
                 array = CreateListNakami(tokenst,argTypes);
                 if (array != null)
                 {
-                    if (tokenst.Get().Str == "]")
+                    if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str == "]")
                     {
                         tokenst.Next();
                         return array;
@@ -740,7 +740,7 @@ namespace D_Sharp
             {
                 var type = expr.Type;
                 exprList.Add(expr);
-                while (tokenst.Get().Str == ",")
+                while (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str == ",")
                 {
                     tokenst.Next();
                     if ((expr = CreateSiki(tokenst, new[] { type })) != null)
@@ -768,16 +768,16 @@ namespace D_Sharp
             if ((beginExpr = CreateSiki(tokenst, argTypes != null ? new[] { argTypes[0].GetElementType() } : null)) != null)
             {
                 var type = beginExpr.Type;
-                if (tokenst.Get().Str == ",")
+                if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str == ",")
                 {
                     Expression secondExpr;
                     tokenst.Next();
                     if ((secondExpr = CreateSiki(tokenst, new[] { type })) != null)
                     {
-                        if (tokenst.Get().Str == "..")
+                        if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str == "..")
                         {
                             tokenst.Next();
-                            if (tokenst.Get().Str != "]")
+                            if (tokenst.NowIndex<tokenst.Size && tokenst.Get().Str != "]")
                             {
                                 var endExpr = CreateSiki(tokenst, new[] { type });
                                 if (endExpr != null)
@@ -1251,6 +1251,8 @@ namespace D_Sharp
         {
             var checkPoint=tokenst.NowIndex;
             Type type=null;
+            if (tokenst.NowIndex >= tokenst.Size)
+                return null;
 
             // [ 型指定子 ]
             if (tokenst.Get().Str == "[")
