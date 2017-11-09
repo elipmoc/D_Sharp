@@ -38,9 +38,12 @@ namespace D_Sharp
                 case ">":
                     return Expression.GreaterThan(left, right);
                 case "++":
-                    return Expression.Call(
-                        typeof(built_in_functions).GetMethod("merge").MakeGenericMethod(left.Type.GetGenericArguments()[0]),
-                        left, right);
+                    var methodInfo =
+                        SelectMethod.Select(typeof(built_in_functions),"merge", BindingFlags.Static | BindingFlags.Public, new Type[] { left.Type, right.Type });
+                    if (methodInfo == null)
+                        return null;
+                    var paramT = methodInfo.GetParameters().Select(param => param.ParameterType).ToArray();
+                    return Expression.Call(methodInfo,Expression.Convert(left,paramT[0]), Expression.Convert(right, paramT[1]));
             }
             return null;
         }
